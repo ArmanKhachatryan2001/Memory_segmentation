@@ -11,7 +11,7 @@ void ran_code(std::map<int, std::string> code, int end) {
         clear_prabel >> tmp;
         if (tmp != "{" && tmp != "}") {
             //tepa te gorcoxutyun
-            int flag = type_and_action.type_action(tmp);
+            int flag = type_and_action.type_action(tmp); //class է որպեսզի հասկանա ինչ տիպ է
             if (flag == -1) {
                // std::cout << 999999 << '\n';                             // gorcoxutyun
             } else if (flag == 1) {               // int || int&&
@@ -234,6 +234,12 @@ int STACK::stack_give_value(std::string str)
     std::stringstream tmp(str);
     std::string t = "";
     while (tmp >> t) {
+        if (t == "=") {
+            if (line[line.size()-1].find('[') != -1) {
+                static_array(str);
+                return 0;
+            }
+        }
         line.push_back(t);
     }
     int size = line.size();
@@ -293,7 +299,95 @@ void STACK::stack_change_value(std::string str_name, std::string str_value) // o
         ++itr;
     }
 }
+//char arr[] = {'a', 'a', 'a', '\0'};
+void STACK::static_array(std::string str)
+{
+    //    ete const lini stexic miangamic data kuxarmem ///
+    static bool b = true;
+    if (index == 100 && b) {
+        address[index-1] = "0x00000000";
+    }
+    std::string tmp = ""; // [55] = {1,2};
+    std::stringstream s(str);
+    std::vector<std::string> line;
+    bool flag = false;
+    while(s >> str) {
+        if (flag || str[0] == '{') {
+            flag = true;
+            tmp += str;
+        } else {
+            line.push_back(str);
+        }
+    }
+    std::vector<std::string> vec = return_array_elements(tmp);
+    std::map<int, std::string> mp = type_sizeof_and_appearance(line[0]);
+    auto it = mp.begin();
+    int x = 0;
+    int y = 0;
+    int count = 0;
+    x = line[1].find('[');
+    y = line[1].find(']');
+    tmp = line[1].substr(x + 1, (y - x) -1);
+    if (tmp == "") {
+        count = vec.size();
+    } else {
+        count = std::stoi(tmp);
+    }
+    //tmp == arr[0]
+    while (line[1].size() > x) {
+        line[1].pop_back();
+    }
+    int temprory = index;
+    address[index] = address[index-1];
+    value[index] = "\033[3;33m=>\033[0m";
+    name[index] = "\033[3;33m" + line[0] + "\033[0m";
+    name[index] = "\033[3;33m(sizeof(" + name[index] + "\033[3;33m" + ") * " + std::to_string(count) + ")\033[0m";
+    area[index] = "";
+    ++index;
+    int j = 0;
+    int size = vec.size();
+    for (int i = 0; i < count; ++i) {
+          address[index] = address_adjuster(address[index-1], it->first);
+          if (j < size) {
+             value[index] = install_string(vec[j++]);
+          } else {
+            value[index] = garbij;
+          }
+          name[index] = line[1] + "[" + std::to_string(i) + "]";
+          area[index] = it->second;
+          ++index;
+    }
 
+    address[temprory] = "\033[3;33m" + line[1] + "\033[0m";
+
+    if (b) {
+        address.erase(99);
+        b = false;
+    }
+}
+
+std::vector<std::string> STACK::return_array_elements(std::string& str)
+{
+    std::vector<std::string> vec;
+    std::string tmp = "";
+    str.pop_back();
+    int size = str.size();
+    for (int i = 0; i < size; ++i) {
+        if (str[i] == '{' || str[i] == '}') {
+            continue;
+        }
+        if (str[i] == ',') {
+            vec.push_back(tmp);
+            tmp = "";
+            continue;
+        }
+        tmp += str[i];
+     }
+     if (tmp != "") {
+         vec.push_back(tmp);
+     }
+     return vec;
+}
 
 /////////////////////////////////////////////////HEAP
 HEAP::HEAP()
