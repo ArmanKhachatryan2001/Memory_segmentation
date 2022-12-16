@@ -43,6 +43,8 @@ public:
     int stack_lvalue_referenc(std::string);
     std::string return_address(std::string) override;
     void stack_change_value(std::string, std::string); // orinak heap ic poxum enq garbijov
+    void static_array(std::string); //static zangvac
+    std::vector<std::string> return_array_elements(std::string&); //{scopneri mijiny sarqume vectoi i arjeq u return anum}
     void print() override;
 private:
     std::map<int, std::string> style;
@@ -61,7 +63,7 @@ private:
     std::map<int, std::string> style;
     std::map<std::string, int> delete_space;
     int new_space_count = 0;
-    std::string leak = "\033[5;32m Memory leak\033[0m";
+    std::string leak = "\033[5;33m Memory leak\033[0m";
 }H;
 
 class TEXT : public RAM {
