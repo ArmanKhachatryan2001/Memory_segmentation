@@ -2,23 +2,36 @@ void foo(RAM* P) {
         P->print();
 }
 
-void ran_code(std::map<int, std::string> code, int end) {
-    SP = T.function_coll(code); // վերադարձնում է main ի թիվը
+void ran_code(std::map<int, std::string>& code, int end) {
+    SP = T.function_coll(code); // ֆունկցիաների համար՝ վերադարձնում է main ի թիվը
     std::string tmp = "";
     ++SP;
     while (SP != end) {
-    std::stringstream clear_prabel(code[SP]);
+        std::stringstream clear_prabel(code[SP]);
         clear_prabel >> tmp;
-        if (tmp != "{" && tmp != "}") {
+        if (tmp != "{" && tmp != "}" && tmp[0] != '/') {
             //tepa te gorcoxutyun
             int flag = type_and_action.type_action(tmp); //class է որպեսզի հասկանա ինչ տիպ է
+            // kareliya kazmakerpel swich ov kam functin pointer ov
             if (flag == -1) {
-               // std::cout << 999999 << '\n';                             // gorcoxutyun
+
+                int flag_action = M.function_or_action(code[SP]); // vorpesszi haskananq functia e te che
+                if(flag_action == 1) { // functia e
+                        std::string stack_coll = T.return_address(code[SP]); // veradardznum e function i masin texekutyun
+                        F.function_coll(stack_coll);
+                } else if (flag_action == 2) { // urish gorcoxutyun
+                
+                }
+                //foo();
+                //std::cout << tmp << '\n';                             // gorcoxutyun
             } else if (flag == 1) {               // int || int&&
+                               //ete orinak senca kanenq ajstex int a = foo();
                 S.stack_give_value(code[SP]);
             } else if (flag == 2) {              // int&
+                //ete orinak senca kanenq ajstex int a = foo();
                 S.stack_lvalue_referenc(code[SP]);
             } else if (flag == 3) { // int*
+                //ete orinak senca kanenq ajstex int a = foo();
                 S.stack_pointer(code[SP]);
             } else if (flag == 4) { // delete
                 H.delete_allocate_space(code[SP]);
@@ -32,19 +45,28 @@ void ran_code(std::map<int, std::string> code, int end) {
 
 void RAM_print(Map style, Map address, Map name, Map value, Map area)
 {
-        for (auto& it : style) {
-            if (it.second == "*/*") {
+        static int flag = 0;
+        std::string s = "        ";
+        auto it = style.begin();
+        for (; it != style.end(); ++it) {
+            if (it->second == "*/*") {
                 std::cout << std::endl;
                 continue;
             }
-            std::cout << it.second << " ";
+            if (flag == 2) {
+                ++flag;
+                M._F->print();
+                std::cout <<  " "; // kkanchenq functianeri zbaxecrac taracqnery
+            } else if (flag <= 2) {
+                ++flag;
+            }
+            std::cout << it->second << " ";
         }
-        std::string s = "        ";
         auto ita = address.begin();
         auto itn = name.begin();
         auto itv = value.begin();
         auto itr = area.begin();
-            std::cout << std::endl;
+        std::cout << std::endl;
         while (ita != address.end() || itn != name.end() || itv != value.end() || itr != area.end()) {
 
             if (ita != address.end()) {
@@ -108,9 +130,9 @@ void STACK::print()
     address[index++] = "\033[4;32mSTACK----------------------------------------------------------END\033[0m\n";
     RAM_print(style, address, name, value, area);
 }
-void STACK::function_area(std::string str) {
-    str = prabel + str;
+void STACK::function_area(std::string str) { //       int main() syntax a sarqum
     //std::cout << str;
+    str = prabel + str;
     style[i++] = str;
 }
 
@@ -540,7 +562,7 @@ std::string HEAP::return_address(std::string)
 }
 
 
-/////////////////////////////////////////////////TEXT
+/////////////////////////////////////////////////tEXT
 TEXT::TEXT()
 {
     style[i++] = "*/*";
@@ -549,10 +571,28 @@ TEXT::TEXT()
     style[i++] = "int main()";
 }
 
-std::string TEXT::return_address(std::string)
+std::string TEXT::return_address(std::string str) // վերադարձնում է ստրինգ որտեղ մինջև առաջին պռաբելը 
+    // ցույց է տալիս թէ որ տողում է գտնվում այդ ֆունկցիայի սկիզբը, իսկ մնացացը ֆունկցիայի prototype֊ն է։
 {
-    
-    return "[       ]";
+    int i = str.size()-1;
+    while (i) {
+        if (str[i] != '(') {
+            str.pop_back();
+            --i;
+        } else {
+            str.pop_back();
+            break;
+        }
+    }
+    std::stringstream s(str);
+    s >> str;
+    for (const auto& it : fun) {
+        if (it.first == str) {
+            return it.second;
+        }
+    }
+
+    return "";
 }
 
 
@@ -620,7 +660,7 @@ int TEXT::function_coll(std::map<int, std::string> code)//վերադարձնու
                 if (cat) {
                     it.second.erase(i + 1, cat);
                 }
-                address[index] = address_adjuster(address[index-1], 1);
+                address[index] = address_adjuster(address[index-1], 256);
                 value[index] = "\033[1;33m" + it.second + "\033[0m";
                 name[index] = " ";
                 area[index] = " ";
@@ -633,7 +673,14 @@ int TEXT::function_coll(std::map<int, std::string> code)//վերադարձնու
                 if (cat_name != -1) {
                     str.erase(cat_name, str.size() - cat_name);
                 }
-                fun[str] = index;
+                // fun map֊ի մեջ պահում ենք թէ որ տողում է գտնվում այդ ֆունկցիան և նրա prototype:
+
+                fun[str] = std::to_string(it.first);
+                fun[str] += " ";
+                fun[str] += address[index];
+                fun[str] += " ";
+                fun[str] += it.second;
+                //std::cout << fun[str] << '\n';
                 ++index;
                 if (temprory) {
                     temprory = 0;
@@ -1060,11 +1107,90 @@ int TYPE::type_action(std::string str) {
     return -1;
 }
 
+  //void stack_change_value(std::string, std::string);
+  //void function_static_array(std::string); //static zangvac
+  //std::vector<std::string> return_array_elements(std::string&); //{scopneri mijiny sarqume vectoi i arjeq u return anum  {1, 2, 4 , 4};  }
+  //void print() override;
 
+
+
+////////////////////FUNCTION
+
+void FUNCTION::function_area(std::string str) //       int main() syntax a sarqum
+{
+    //std::cout << str;
+    //str = prabel + str;
+    //style[i++] = str;
+}
+
+void FUNCTION::function_coll(std::string& str/*std::map<int, std::string>*/) // functian texadrelu hamar
+{
+    //cankacac texic return miangamic endy u veradarnum e -----------------end-----------------------------
+    //std::cout << " 0" << str << "0 ";
+    std::stringstream s(str);
+    std::string return_type = ""; // inch tipi e veradeardznum functian
+    std::string temprory = ""; // ogtagorcelu
+    int table = 0;
+    s >> table; // es te vortexic e sksvum functian
+    s >> address[index]; // 0xF00000
+    s >> return_type; // inch tipi e veradardznum
+    //s >> temprory; // anuny u argumentnery
+        std::string tt = "";
+    if (!s.eof()) {
+        std::getline(s, tt);
+        temprory += tt;
+    }
+    value[index] = "\033[9;32m" + function_prototype(return_type + temprory) + "\033[0m";
+    area[index] = "";
+    name[index] = "";
+    prev_address = address[index]; // te inch hasceic e sksvum
+    ++index;
+
+
+    address[index] = "------------------------------END---------------------------------";
+    value[index] = "";
+    name[index] = "";
+    area[index] = "\n";
+    ++index;
+    // erb tesni return miangamic tox functiayi endy dni
+    // -----------------end-----------------------------
+
+    //std::cout << str;
+}
+
+void FUNCTION::print()
+{
+     RAM_print(style, address, name, value, area);
+}
+
+std::string FUNCTION::return_address(std::string str)
+{
+    return "";
+}
+////////////////////////////
+
+
+//////////////////////////MEMORY_CONTROLLER
+int MEMORY_CONTROLLER::function_or_action(const std::string& str)
+{
+    int x = 0;
+    x = str.find('(');
+    if (x != -1) {
+        return 1;
+    }
+    return 2;
+}
+
+
+
+////////////////////
 
 std::string function_prototype(std::string str)
 {
+    static bool b = true;
+    //std::cout << str << '\n';
     std::string tmp = "0x00000000 int main()++++++++++++++++++++++++++++++++++++++++START";
+    //std::cout << tmp.size() << " ";
     for (int i = str.size() - 1; i >= 0; --i) {
         if (str[i] != ')') {
             str.pop_back();
@@ -1072,7 +1198,15 @@ std::string function_prototype(std::string str)
             break;
         }
     }
-    tmp.erase(0, str.size());
+    if (b) {
+        tmp.erase(0, str.size());
+        b = false;
+    } else {
+        tmp.erase(0, 21);
+        int cat = (tmp.size() + str.size() + 11) - 66;
+        //std::cout << cat << " " << str << " ";
+        tmp.erase(0, cat);
+    }
     str += tmp;
     //str = " " + str;
     return "\033[1;33m" + str + "\033[0m";
