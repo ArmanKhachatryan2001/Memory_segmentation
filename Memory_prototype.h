@@ -29,7 +29,7 @@ protected:
     std::map<int, std::string> value; // Արժեքը
     std::map<int, std::string> area; // Տարածք
     std::string prabel = "       ";
-    std::string garbij = "[  \033[2;31mGARBIJ\033[0m  ]";
+    std::string garbij = "[ \033[2;31mGARBAGE\033[0m  ]";
     int i = 0; //style ֊ի համար սկզբնական
     int index = 100; // բոլոր հասցեները, արժեքները, փոփոխականները և տարածքները սկսվում են այս ինդեքսից։
 };
@@ -63,7 +63,7 @@ private:
     std::map<int, std::string> style;
     std::map<std::string, int> delete_space;
     int new_space_count = 0;
-    std::string leak = "\033[5;33m Memory leak\033[0m";
+    std::string leak = "\033[5;31m\033[1;7m Memory leak \033[0m";
 }H;
 
 class TEXT : public RAM {
@@ -71,11 +71,11 @@ public:
     TEXT();
     //std::string function_coll()
     int function_coll(std::map<int, std::string>); // ret main index
-    std::string return_address(std::string) override;
+    std::string return_address(std::string) override; //վերադարձնում է թէ որ տողում է այդ ֆունկցիան և նրա prototype֊ը։
     void print() override;
 private:
     std::map<int, std::string> style;
-    std::map<std::string, int> fun; //funkcion  int foo() {}  kkanchi foo - n  stex kpahenq index գրել ֆունկցի որը stackum ցույց կտա որ ֆունկցիան հատկացրել է տարածք և ինչխես main֊ը կկարդանք ինչոր ֆայլի մեջ և ֆունկցիան կդառնա temprory mainորպես
+    std::map<std::string, std::string> fun; //funkcion  int foo() {}  kkanchi foo - n  stex kpahenq index գրել ֆունկցի որը stackum ցույց կտա որ ֆունկցիան հատկացրել է տարածք և ինչխես main֊ը կկարդանք ինչոր ֆայլի մեջ և ֆունկցիան կդառնա temprory mainորպես
 }T;
 
 class BSS : public RAM {
@@ -115,6 +115,23 @@ private:
     std::map<int, std::string> style;
 }D;
 
+class FUNCTION : public RAM {
+public:
+    void function_area(std::string);
+    int function_give_value(std::string);
+    void function_coll(std::string&); // functian texadrelu hamar
+    //int function_pointer(std::string);
+    //int function_lvalue_referenc(std::string);
+    std::string return_address(std::string) override;
+    //void stack_change_value(std::string, std::string);
+    //void function_static_array(std::string); //static zangvac
+    //std::vector<std::string> return_array_elements(std::string&); //{scopneri mijiny sarqume vectoi i arjeq u return anum  {1, 2, 4 , 4};  }
+    void print() override;
+private:
+    std::map<int, std::string> style;
+    std::string prev_address = "0xF0000100";
+}F;
+
 class MEMORY_CONTROLLER {
     public:
         STACK* _S = &S;
@@ -123,6 +140,9 @@ class MEMORY_CONTROLLER {
         BSS* _B = &B;
         READ_ONLY* _R = &R;
         DATA* _D = &D;
+        FUNCTION* _F = &F;
+        int function_or_action(const std::string&);
+        //stex kareliya vector pahel vor functioni elemetnery pahenq mejy
 }M;
 
 #include "Memory_implementation.hpp"
