@@ -412,6 +412,8 @@ int STACK::stack_give_value(std::string str)
     return 0;
 }
 
+
+
 void STACK::transfer(const std::vector<std::string>& vec, std::string str) // stexic miangamic global vectorin
 {
     int f1 = str.find('(');
@@ -498,7 +500,15 @@ std::vector<std::string> STACK::argument_rezolve(std::string str)
                 b = false;
             } else if (k == 3){
                 //std::cout << first1 << " ";
-                M._F->rezolve_arguments[second1] = first1;
+                if (first1[0] >= '0' && first1[0] <= '9') {
+                    M._F->rezolve_arguments[second1] = first1;
+                } else {
+                    first1 = M._D->return_address(first1);
+                    first1 = find_address(first1);
+                    first1 = return_value(first1);
+                    first1 = cut_from_string(first1);
+                    M._F->rezolve_arguments[second1] = first1;
+                }
             }
             ++k;
         }
@@ -520,6 +530,179 @@ void STACK::stack_change_value(std::string str_name, std::string str_value) // o
     }
     M._F->function_stack_change_value(str_name, str_value);
 }
+
+void STACK::static_matrix(std::string str) //matrix //????????????????????????????????????????????===========
+{
+    static bool b = false;
+    if (index == 100) {
+        b = true;
+        address[index-1] = "0x00000000";
+    }
+    std::string tmp = ""; // [55] = {1,2};
+    std::stringstream s(str);
+    std::vector<std::string> line;
+    bool flag = false;
+    while(s >> str) {
+        if (flag || str[0] == '{') {
+            flag = true;
+            tmp += str;
+        } else {
+            line.push_back(str);
+        }
+    }
+    line.push_back(tmp);
+
+    int cut = line[1].find('[');
+    int cut1 = 0;
+    int name_cut = cut;
+    int row = 0; // toxeri qanaky
+    int column = 0;// syuneri qanaky
+    int x = 2;
+    do {
+        cut1 = cut;
+        while (line[1][cut] != ']') {
+            ++cut;
+        }
+        tmp = line[1].substr(cut1 + 1, (cut - cut1) -1);
+        if (tmp == "") {
+            row = 0; // es en depqna vor chuni grac veci sizenel elementneri qanakna
+        } else {
+            if (x == 2) {
+                row = array_element_count(tmp);
+            } else {
+                column = array_element_count(tmp);
+            }
+        }
+        ++cut;
+        --x;
+    } while (x > 0);
+
+    std::vector<std::string> vec = return_matrix_elements(line[3], column); //--stex kdzem vor {{1,2,3},3,3} ashxati
+    if (!row) {
+        ++row;
+        for (int i = 0; i < vec.size(); ++i) {
+            if (vec[i] == " ") {
+               ++row;
+            }
+        }
+    }
+
+    std::map<int, std::string> mp = type_sizeof_and_appearance(line[0]);
+    line[1] = line[1].substr(0, name_cut);
+    auto it = mp.begin();
+
+    int tmp_row = 0;
+    int j = 0;
+    do {
+    int temprory = index;
+    address[index] = address[index-1];
+    value[index] = "\033[3;33m=>\033[0m";
+    name[index] = "\033[3;33m" + line[0] + "\033[0m";
+    name[index] = "\033[3;33m(sizeof(" + name[index] + "\033[3;33m" + ") * " + std::to_string(column) + ")\033[0m";
+    area[index] = "";
+    ++index;
+    for (int i = 0; i < column; ++i) {
+       if (vec[j] == " ") { //////////////////hly es eli knayem
+           ++j;
+       }
+       address[index] = address_adjuster(address[index-1], it->first);
+       value[index] = install_string(vec[j++]);
+       name[index] = line[1] + "[" + std::to_string(tmp_row) + "]" + "[" + std::to_string(i) + "]";
+       area[index] = it->second;
+       ++index;
+    }
+
+    address[temprory] = "\033[3;33m" + line[1] + "[" + std::to_string(tmp_row) + "]" + "\033[0m";
+    ++tmp_row;
+    } while (tmp_row < row);
+
+    if (b) {
+        address.erase(99);
+        b = false;
+    }
+}
+
+std::vector<std::string> STACK::return_matrix_elements(const std::string& str, int column)
+{
+    std::vector<std::string> vec;
+    std::string tmp = "";
+    int size = str.size()-2;
+    int num = column;
+    for (int i = 1; i < size; ++i) {
+        if (str[i] == '{') {
+            if (num < column) {
+                vec.push_back(" ");
+                num = column;
+            }
+            ++i;
+            for (; str[i] != '}'; ++i) {
+                if (str[i] == ',') {
+                    vec.push_back(tmp);
+                    --num;
+                    tmp = "";
+                    continue;
+                }
+                tmp += str[i];
+            }
+            if (tmp != "") {
+                vec.push_back(tmp);
+                --num;
+                tmp = "";
+            }
+            for (int k = 0; k < num; ++k) {
+                vec.push_back("0");
+            }
+            num = column;
+            ++i;
+            while (i < size && (str[i] == ',' || str[i] == '}')) {
+                ++i;
+            }
+            if (i < size) {
+                vec.push_back(" ");
+            }
+            --i;
+        } else {
+            if (str[i] == ',') {
+                vec.push_back(tmp);
+                --num;
+                if (!num) {
+                    num = column;
+                    vec.push_back(" ");
+                }
+                tmp = "";
+                continue;
+            }
+            tmp += str[i];
+        }
+    }
+
+    if (tmp != "") {
+        --num;
+       vec.push_back(tmp);
+    }
+    if (num && num < column) {
+        for (int i = 0; i < num; ++i) {
+            vec.push_back("0");
+        }
+    }
+    return vec;
+}
+
+int STACK::array_element_count(std::string tmp) // "int arr["4"]" elementneri qanaky
+{
+     if (tmp[0] >= '0' && tmp[0] <= '9') {
+         return std::stoi(tmp);
+     } else if (isalpha(tmp[0])) {
+         tmp = return_address(tmp);
+         tmp = find_address(tmp);
+         tmp = return_value(tmp);
+         tmp = cut_from_string(tmp);
+         return std::stoi(tmp);
+     }
+     return 0;
+}
+
+
 //char arr[] = {'a', 'a', 'a', '\0'};
 void STACK::static_array(std::string str)
 {
@@ -551,17 +734,9 @@ void STACK::static_array(std::string str)
     y = line[1].find(']');
     tmp = line[1].substr(x + 1, (y - x) -1);
     if (tmp == "") {
-        count = vec.size();
+        count = vec.size(); // es en depqna vor chuni grac veci sizenel elementneri qanakna
     } else {
-        if (tmp[0] >= '0' && tmp[0] <= '9') {
-            count = std::stoi(tmp);
-        } else if (isalpha(tmp[0])) {
-            tmp = return_address(tmp);
-            tmp = find_address(tmp);
-            tmp = return_value(tmp);
-            tmp = cut_from_string(tmp);
-            count = std::stoi(tmp);
-        }
+        count = array_element_count(tmp);
     }
     //tmp == arr[0]
     while (line[1].size() > x) {
@@ -603,7 +778,7 @@ std::vector<std::string> STACK::return_array_elements(std::string& str)
     str.pop_back();
     int size = str.size();
     for (int i = 0; i < size; ++i) {
-        if (str[i] == '{' || str[i] == '}') {
+        if (str[i] == '{' || str[i] == '}' || str[i] == ' ') {
             continue;
         }
         if (str[i] == ',') {
@@ -1707,13 +1882,18 @@ void FUNCTION::function_stack_give_value(std::string str)
     std::string t = "";
     while (tmp >> t) {
         if (t == "=") {
-            if (line[line.size()-1].find('[') != -1) {
-                function_static_array(str);/////////////////////////////////////////////////
+            int flag = std::count(line[line.size()-1].begin(), line[line.size()-1].end(), '[');
+            if (flag == 1) {
+                function_static_array(str);
+                return;
+            } else if (flag == 2) {
+                function_static_matrix(str);
                 return;
             }
         }
         line.push_back(t);
     }
+
     int size = line.size();
     line[size-1].pop_back();
     std::map<int, std::string> mp;
@@ -1795,6 +1975,114 @@ std::string FUNCTION::function_return_value(const std::string& str) // poxancum 
     }
     return "";
 }
+
+int FUNCTION::function_array_element_count(std::string tmp) // "int arr["4"]" elementneri qanaky
+{
+     if (tmp[0] >= '0' && tmp[0] <= '9') {
+         return std::stoi(tmp);
+     } else if (isalpha(tmp[0])) {
+         tmp = return_address(tmp);
+         if (tmp.find("0x") != -1) {
+            tmp = find_address(tmp);
+            tmp = function_return_value(tmp);
+         }
+         tmp = cut_from_string(tmp);
+         return std::stoi(tmp);
+     }
+     return 0;
+}
+
+void FUNCTION::function_static_matrix(std::string str) //matrix //????????????????????????????????????????????===========
+{
+    static bool b = false;
+    if (index == 100) {
+        b = true;
+        address[index-1] = "0x00000000";
+    }
+    std::string tmp = ""; // [55] = {1,2};
+    std::stringstream s(str);
+    std::vector<std::string> line;
+    bool flag = false;
+    while(s >> str) {
+        if (flag || str[0] == '{') {
+            flag = true;
+            tmp += str;
+        } else {
+            line.push_back(str);
+        }
+    }
+    line.push_back(tmp);
+
+    int cut = line[1].find('[');
+    int cut1 = 0;
+    int name_cut = cut;
+    int row = 0; // toxeri qanaky
+    int column = 0;// syuneri qanaky
+    int x = 2;
+    do {
+        cut1 = cut;
+        while (line[1][cut] != ']') {
+            ++cut;
+        }
+        tmp = line[1].substr(cut1 + 1, (cut - cut1) -1);
+        if (tmp == "") {
+            row = 0; // es en depqna vor chuni grac veci sizenel elementneri qanakna
+        } else {
+            if (x == 2) {
+                row = function_array_element_count(tmp);
+            } else {
+                column = function_array_element_count(tmp);
+            }
+        }
+        ++cut;
+        --x;
+    } while (x > 0);
+
+    std::vector<std::string> vec = M._S->return_matrix_elements(line[3], column); //--stex kdzem vor {{1,2,3},3,3} ashxati
+    if (!row) {
+        ++row;
+        for (int i = 0; i < vec.size(); ++i) {
+            if (vec[i] == " ") {
+               ++row;
+            }
+        }
+    }
+
+    std::map<int, std::string> mp = type_sizeof_and_appearance(line[0]);
+    line[1] = line[1].substr(0, name_cut);
+    auto it = mp.begin();
+
+    int tmp_row = 0;
+    int j = 0;
+    do {
+    int temprory = index;
+    address[index] = address[index-1];
+    value[index] = "\033[3;33m=>\033[0m";
+    name[index] = "\033[3;33m" + line[0] + "\033[0m";
+    name[index] = "\033[3;33m(sizeof(" + name[index] + "\033[3;33m" + ") * " + std::to_string(column) + ")\033[0m";
+    area[index] = "";
+    ++index;
+    for (int i = 0; i < column; ++i) {
+       if (vec[j] == " ") { //////////////////hly es eli knayem
+           ++j;
+       }
+       address[index] = address_adjuster(address[index-1], it->first);
+       value[index] = install_string(vec[j++]);
+       name[index] = line[1] + "[" + std::to_string(tmp_row) + "]" + "[" + std::to_string(i) + "]";
+       area[index] = it->second;
+       ++index;
+    }
+
+    address[temprory] = "\033[3;33m" + line[1] + "[" + std::to_string(tmp_row) + "]" + "\033[0m";
+    ++tmp_row;
+    } while (tmp_row < row);
+
+    if (b) {
+        address.erase(99);
+        b = false;
+    }
+}
+
 
 //char arr[] = {'a', 'a', 'a', '\0'};
 void FUNCTION::function_static_array(std::string str)
