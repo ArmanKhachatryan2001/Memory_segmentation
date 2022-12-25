@@ -54,8 +54,10 @@ public:
     int stack_lvalue_referenc(std::string);
     std::string return_address(std::string, int arg = 0) override;
     void stack_change_value(std::string, std::string); // orinak heap ic poxum enq garbijov
+    int array_element_count(std::string);
     void static_array(std::string); //static zangvac
-    //void static_matrix(std::string); //matrix
+    void static_matrix(std::string); //matrix
+    std::vector<std::string> return_matrix_elements(const std::string&, int);
     std::vector<std::string> return_array_elements(std::string&); //{scopneri mijiny sarqume vectoi i arjeq u return anum}
     std::vector<std::string> argument_rezolve(std::string);// veradardznum e argumentnery int a  int b or`
     void transfer(const std::vector<std::string>&, std::string);
@@ -145,6 +147,8 @@ public:
     std::string return_address(std::string, int arg = 0) override;
     void function_stack_change_value(std::string, std::string);
     void function_static_array(std::string); //static zangvac
+    void function_static_matrix(std::string); //matrix //????????????????????????????????????????????===========
+    int function_array_element_count(std::string); // "int arr["4"]" elementneri qanaky
     std::vector<std::string> function_return_array_elements(std::string&); //{scopneri mijiny sarqume vectoi i arjeq u return anum  {1, 2, 4 , 4};  }
     void clear_rezolve_function();
     std::string function_return_value(const std::string&); // poxancum enq address
