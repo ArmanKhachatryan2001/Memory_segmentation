@@ -3,10 +3,20 @@
 
 typedef const std::map<int, std::string>  Map;
 
+std::map<int, std::string> code;
+std::vector<std::string> function_arguments_rezolve;
 int SP = 0;
+//int SP_END = 0;
+
+void ran_code(std::map<int, std::string>&, int);
+
 void RAM_print(Map style, Map value, Map name, Map area);//տպում է վերջնական տեսքը
 std::string function_prototype(std::string);//նաղատիպնե վերադարձնում or.0x0+++++start
 std::string install_string(std::string);
+std::string cut_from_string(std::string);
+std::string find_address(std::string);
+
+//verjum sranq klcem inchvor classi mej vorpes gorciqner
 
 struct TYPE {
     TYPE();
@@ -16,13 +26,14 @@ struct TYPE {
     std::unordered_map<std::string, bool> type_Rv_reference;
     std::unordered_map<std::string, bool> type_pointer;
     std::unordered_map<std::string, bool> delete_heap;
+    std::unordered_map<std::string, bool> return_function;
 }type_and_action;
 
 
 class RAM {
 public:
     virtual void print() = 0;
-    virtual std::string return_address(std::string str) = 0; // poxancum enq popoxakany, veradardznum e hascen:
+    virtual std::string return_address(std::string str, int arg = 0) = 0; // poxancum enq popoxakany, veradardznum e hascen:
 protected:
     std::map<int, std::string> address; // Հասցեն
     std::map<int, std::string> name; // Փոփոխական
@@ -41,10 +52,14 @@ public:
     int stack_give_value(std::string);
     int stack_pointer(std::string);
     int stack_lvalue_referenc(std::string);
-    std::string return_address(std::string) override;
+    std::string return_address(std::string, int arg = 0) override;
     void stack_change_value(std::string, std::string); // orinak heap ic poxum enq garbijov
     void static_array(std::string); //static zangvac
+    //void static_matrix(std::string); //matrix
     std::vector<std::string> return_array_elements(std::string&); //{scopneri mijiny sarqume vectoi i arjeq u return anum}
+    std::vector<std::string> argument_rezolve(std::string);// veradardznum e argumentnery int a  int b or`
+    void transfer(const std::vector<std::string>&, std::string);
+    std::string return_value(const std::string&); // poxancum enq address
     void print() override;
 private:
     std::map<int, std::string> style;
@@ -54,12 +69,15 @@ class HEAP : public RAM {
  public:
     HEAP();
     void print() override;
-    std::string return_address(std::string) override;
+    std::string return_address(std::string, int arg = 0) override;
     std::string heap_allocate_space(std::string, std::string);
     void delete_allocate_space(std::string, bool flag = false);
     void add_delete_heap_area(std::string, int);//ես ֆունկցիայով հասկանում ենք թէ heap֊ից ինչ տարածքէ վերձրել[] ? ()
+    void add_pointer_allocate_space(std::string, std::string);//erb inchvor pointerov hxvum enq heap ic verctac taracqi vra int* p = arr;   ajs functiayov pahum enq anuny vorpesi haskananq te inchne jnjum
+    std::string search_pointer(std::string);
 private:
     std::map<std::string, int> delete_heap_area;//[] ? () պահում ենք սրա մեջ;
+    std::map<std::string, std::string> new_pointer_heap; // aystex pahum enq ayn pointernery vorov nayum enq heapic vrtcrac taracqi vra;
     std::map<int, std::string> style;
     std::map<std::string, int> delete_space;
     int new_space_count = 0;
@@ -69,9 +87,9 @@ private:
 class TEXT : public RAM {
 public:
     TEXT();
-    //std::string function_coll()
-    int function_coll(std::map<int, std::string>); // ret main index
-    std::string return_address(std::string) override; //վերադարձնում է թէ որ տողում է այդ ֆունկցիան և նրա prototype֊ը։
+    //std::string function_call()
+    int function_call(std::map<int, std::string>); // ret main index
+    std::string return_address(std::string, int arg = 0) override; //վերադարձնում է թէ որ տողում է այդ ֆունկցիան և նրա prototype֊ը։
     void print() override;
 private:
     std::map<int, std::string> style;
@@ -82,10 +100,11 @@ class BSS : public RAM {
  public:
     BSS();
     void print() override;
-    std::string return_address(std::string) override;
+    std::string return_address(std::string, int arg = 0) override;
     int bss_give_value(std::string);
     int bss_pointer(std::string);
     int bss_lvalue_referenc(std::string);
+    std::string return_value(const std::string&); // poxancum enq address
 
  private:
     std::string NULLPTR = "[  nullptr ]";
@@ -96,8 +115,8 @@ class READ_ONLY : public RAM {
  public:
     READ_ONLY();
     void print() override;
-    std::string return_address(std::string);
-    std::string stack_coll_char_pointer(std::string, std::string); // stanum e "hello" ->>   tox`   ev veradardznum arajin elementi hascen or`-> 0x00000022
+    std::string return_address(std::string, int arg = 0);
+    std::string stack_call_char_pointer(std::string, std::string); // stanum e "hello" ->>   tox`   ev veradardznum arajin elementi hascen or`-> 0x00000022
  private:
     std::map<int, std::string> style;
 }R;
@@ -106,28 +125,36 @@ class DATA : public RAM {
 public:
     DATA();
     void print() override;
-    std::string return_address(std::string);
+    std::string return_address(std::string, int arg = 0);
     int data_give_value(std::string);
     int data_pointer(std::string);
     int data_lvalue_referenc(std::string);
+    std::string return_value(const std::string&); // poxancum enq address
 
 private:
     std::map<int, std::string> style;
 }D;
 
+
 class FUNCTION : public RAM {
 public:
-    void function_area(std::string);
-    int function_give_value(std::string);
-    void function_coll(std::string&); // functian texadrelu hamar
-    //int function_pointer(std::string);
-    //int function_lvalue_referenc(std::string);
-    std::string return_address(std::string) override;
-    //void stack_change_value(std::string, std::string);
-    //void function_static_array(std::string); //static zangvac
-    //std::vector<std::string> return_array_elements(std::string&); //{scopneri mijiny sarqume vectoi i arjeq u return anum  {1, 2, 4 , 4};  }
+    void function_stack_give_value(std::string);
+    std::string function_call(std::string&, int, std::map<int, std::string>&); // functian texadrelu hamar
+    void function_stack_pointer(std::string);
+    void function_stack_lvalue_referenc(std::string);
+    std::string return_address(std::string, int arg = 0) override;
+    void function_stack_change_value(std::string, std::string);
+    void function_static_array(std::string); //static zangvac
+    std::vector<std::string> function_return_array_elements(std::string&); //{scopneri mijiny sarqume vectoi i arjeq u return anum  {1, 2, 4 , 4};  }
+    void clear_rezolve_function();
+    std::string function_return_value(const std::string&); // poxancum enq address
+    std::map<std::string, std::string> rezolve_arguments;//functiayin poxancelu hamar
     void print() override;
 private:
+    void call_and_implementation();
+    std::map<std::string, std::string> temprory_address;//functiayi argumentneri patahakan hascener
+    //std::vector<std::string> function_arguments(std::string); // functiaji argumentnery
+    std::map<int, std::string> function_area; // որպեսզի ֆունկցիայի մեջ սկզբում ման գա փոփոխականը
     std::map<int, std::string> style;
     std::string prev_address = "0xF0000100";
 }F;
