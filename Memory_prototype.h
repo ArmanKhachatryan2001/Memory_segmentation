@@ -27,6 +27,7 @@ struct TYPE {
     std::unordered_map<std::string, bool> type_pointer;
     std::unordered_map<std::string, bool> delete_heap;
     std::unordered_map<std::string, bool> return_function;
+    std::unordered_map<std::string, bool> type_two_pointer;
 }type_and_action;
 
 
@@ -41,6 +42,8 @@ protected:
     std::map<int, std::string> area; // Տարածք
     std::string prabel = "       ";
     std::string garbij = "[ \033[2;31mGARBAGE\033[0m  ]";
+    std::string tmp_nullptr = "[ nullptr  ]";
+    std::string tmp_null = "[   NULL   ]";
     int i = 0; //style ֊ի համար սկզբնական
     int index = 100; // բոլոր հասցեները, արժեքները, փոփոխականները և տարածքները սկսվում են այս ինդեքսից։
 };
@@ -48,22 +51,27 @@ protected:
 class STACK : public RAM {
 public:
     STACK();
+    void attribute(std::string);
     void function_area(std::string);
     int stack_give_value(std::string);
     int stack_pointer(std::string);
     int stack_lvalue_referenc(std::string);
     std::string return_address(std::string, int arg = 0) override;
-    void stack_change_value(std::string, std::string); // orinak heap ic poxum enq garbijov
+    bool stack_change_address_for_value(std::string, std::string);
+    bool stack_change_value(std::string, std::string, bool flag = 0); // orinak heap ic poxum enq garbijov
     int array_element_count(std::string);
     void static_array(std::string); //static zangvac
     void static_matrix(std::string); //matrix
     std::vector<std::string> return_matrix_elements(const std::string&, int);
     std::vector<std::string> return_array_elements(std::string&); //{scopneri mijiny sarqume vectoi i arjeq u return anum}
     std::vector<std::string> argument_rezolve(std::string);// veradardznum e argumentnery int a  int b or`
-    void transfer(const std::vector<std::string>&, std::string);
+    void transfer(std::vector<std::string>&, std::string);
     std::string return_value(const std::string&); // poxancum enq address
+    std::string return_recursive_value(std::string); //recursive mana galis minjev hasni arjeqi address
+    std::string return_name(std::string); // *P p-n cuyc e talis arr[0]
     void print() override;
 private:
+    std::map<std::string, std::string> static_array_address;
     std::map<int, std::string> style;
 }S;
 
@@ -71,11 +79,15 @@ class HEAP : public RAM {
  public:
     HEAP();
     void print() override;
+    std::string return_name(std::string); // *P p-n cuyc e talis arr[0]
     std::string return_address(std::string, int arg = 0) override;
+    std::string return_recursive_value(std::string);//recursive mana galis minjev hasni arjeqi      address poxancum enq inqy gtnum veradardznum e arjeqy
     std::string heap_allocate_space(std::string, std::string);
-    void delete_allocate_space(std::string, bool flag = false);
+    void delete_allocate_space(std::string, bool flag = 0);
     void add_delete_heap_area(std::string, int);//ես ֆունկցիայով հասկանում ենք թէ heap֊ից ինչ տարածքէ վերձրել[] ? ()
     void add_pointer_allocate_space(std::string, std::string);//erb inchvor pointerov hxvum enq heap ic verctac taracqi vra int* p = arr;   ajs functiayov pahum enq anuny vorpesi haskananq te inchne jnjum
+    bool change_value(std::string, std::string);// anuny u te inchenq poxum
+    bool change_address_for_value(std::string, std::string);
     std::string search_pointer(std::string);
 private:
     std::map<std::string, int> delete_heap_area;//[] ? () պահում ենք սրա մեջ;
@@ -145,9 +157,10 @@ public:
     void function_stack_pointer(std::string);
     void function_stack_lvalue_referenc(std::string);
     std::string return_address(std::string, int arg = 0) override;
-    void function_stack_change_value(std::string, std::string);
+    bool function_stack_change_value(std::string, std::string);
     void function_static_array(std::string); //static zangvac
     void function_static_matrix(std::string); //matrix //????????????????????????????????????????????===========
+    void function_attribute(std::string);
     int function_array_element_count(std::string); // "int arr["4"]" elementneri qanaky
     std::vector<std::string> function_return_array_elements(std::string&); //{scopneri mijiny sarqume vectoi i arjeq u return anum  {1, 2, 4 , 4};  }
     void clear_rezolve_function();

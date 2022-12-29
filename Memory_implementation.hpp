@@ -18,7 +18,6 @@ void ran_code(std::map<int, std::string>& code, int end) {
             int flag = type_and_action.type_action(tmp); //class է որպեսզի հասկանա ինչ տիպ է
             // kareliya kazmakerpel swich ov kam functin pointer ov
             if (flag == -1) {
-
                 int flag_action = M.function_or_action(code[SP]); // vorpesszi haskananq functia e te che
                 if(flag_action == 1) { // functia e foo();
                         std::string stack_call = T.return_address(code[SP]); // veradardznum e function i masin texekutyun
@@ -29,6 +28,10 @@ void ran_code(std::map<int, std::string>& code, int end) {
 
                         M._F->clear_rezolve_function();
                 }
+
+                S.attribute(code[SP]); // gorcoxutyan hamara
+                //std::cout << code[SP];
+
                 //std::cout << tmp << '\n';                             // gorcoxutyun
             } else if (flag == 1) {               // int || int&&
                 //ete orinak senca kanenq ajstex int a = foo();
@@ -41,6 +44,8 @@ void ran_code(std::map<int, std::string>& code, int end) {
                 S.stack_pointer(code[SP]);
             } else if (flag == 4) { // delete
                 H.delete_allocate_space(code[SP]);
+            } else if (flag == 6) { //int**
+                S.stack_pointer(code[SP]);
             }
         }
         ++SP;
@@ -104,6 +109,7 @@ TYPE::TYPE() {
         type_pointer = {{"void*", 1}, {"int*", 1}, {"bool*", 1}, {"char*", 1}, {"short*", 1}, {"double*", 1}, {"float*", 1}, {"long*", 1}};
         delete_heap = {{"delete" , 1}, {"delete[]", 1}};
         return_function = {{"return", 1}, {"return;", 1}};
+        type_two_pointer = {{"void**", 1}, {"int**", 1}, {"bool**", 1}, {"char**", 1}, {"short**", 1}, {"double**", 1}, {"float**", 1}, {"long**", 1}};
         //short
       //itype_pointer["void*"] = 1;
       //type_pointer["int*"] = 1;
@@ -143,15 +149,134 @@ void STACK::function_area(std::string str) { //       int main() syntax a sarqum
     style[i++] = str;
 }
 
+// else if (line[3] == "new") {
+  //          value[index] = M._H->heap_allocate_space(line[1] ,line[4]); 
+void STACK::attribute(std::string str)
+{
+    std::vector<std::string> line;
+    std::stringstream s(str);
+    while (s >> str) {
+        line.push_back(str);
+    }
+    int size = line.size();
+    line[size-1].pop_back(); // es verjin ';' -i hamar
+    // heapum petqa unenanq change_value function vorpessi poxenq arjeqy
+    if (line[0][0] == '*') {
+        if (line[0][1] == '*') {
+            line[0].erase(0, 2);
+        } else {
+            line[0].erase(0, 1);
+        }
+        line[0] = "&" + line[0];
+        //std::cout << line[0] << "A\n";
+        line[0] = find_address(return_address(line[0]));
+        //std::cout << line[0] << "A\n";
+        line[0] = return_name(line[0]); // orinak *P P n vortexe cuyc talis num kam arr[0] ev = 8
+        //std::cout << line[0] << "A\n";
+    }
+    if (line[2] == "new") {
+        M._H->change_value(line[0], M._H->heap_allocate_space(line[0] ,line[3]));
+        return;
+        //std::cout << M._H->heap_allocate_space(line[0] ,line[3]);
+    } else if (line[2][0] == 39 || (line[2][0] >= '0' && line[2][0] <= '9')) {
+        stack_change_value(line[0], install_string(line[2]));
+        return;
+    } else if (std::isalpha(line[2][0])) {
+
+        if (line[2] == "nullptr" || line[2] == "NULL") {           // es erb p = nullptr
+            stack_change_value(line[0], install_string(line[2]), 1);
+            return;
+        }
+
+        line[2] = return_address(line[2], 1);// ete 1 apa value ete che address
+
+        if (line[2] == tmp_nullptr || line[2] == tmp_null) { // es erbvor klini int* p = nullptr
+            stack_change_value(line[0], line[2], 1);
+            return;
+        }
+
+        if (line[2].find("0x") != -1) { // es erb vor valuen klini hasce
+            stack_change_value(line[0], line[2], 1);
+        } else {
+            stack_change_value(line[0], install_string(line[2])); // esel tt = 88
+        }
+        return;
+
+    } else if (line[2][0] == '&') {
+        line[2].erase(0, 1);
+        line[2] = return_address(line[2]);// ete 1 apa value ete che address
+        stack_change_value(line[0], line[2], 1); // 1-y nra hamara vor henc et hascein veragri
+    } else if (line[2][0] == '*') {
+        if (line[2][1] == '*') {
+            line[2].erase(0, 2);
+        } else {
+            line[2].erase(0, 1);
+        }
+        line[2] = return_address(line[2], 1);
+        if (line[2].find("0x") == -1) {
+            stack_change_value(line[0], line[2]); // esel tt = 88
+        } else {
+            line[2] = return_recursive_value(find_address(line[2]));
+            stack_change_value(line[0], line[2]); 
+        }
+    }
+
+}
+
+
+std::string STACK::return_name(std::string str) // poxancum em anuny *P vor veradardznie  arr[0]
+{
+    for (auto& it : address) {
+        if(it.second == str) {
+            if (value[it.first].find("0x") == -1) {
+                return name[it.first];
+            } else {
+                return return_name(find_address(value[it.first]));
+            }
+        }
+    }
+    std::string s = M._H->return_name(str);
+    if (s != "") {
+        return s;
+    }
+    // data  bss heap
+    return "";
+
+}
+
+std::string STACK::return_recursive_value(std::string str)//recursive mana galis minjev hasni arjeqi      address poxancum enq inqy gtnum veradardznum e arjeqy
+{
+    for (auto& it : address) {
+        if(it.second == str) {
+            if (value[it.first].find("0x") == -1) {
+                return value[it.first];
+            } else {
+                return return_recursive_value(find_address(value[it.first]));
+            }
+        }
+    }
+    std::string s = M._H->return_recursive_value(str);
+    if (s != "") {
+        return s;
+    }
+    // data  bss heap
+    return "";
+}
+
 std::string STACK::return_address(std::string str, int arg) // str == name // popoxakan e
 {
+    
     char point = ' ';
     if (str[0] == '&') {
         point = '&';
         str.erase(0, 1);
     }
-    int tmp = 0;
     std::string s = "[";
+    if (static_array_address.find(str) != static_array_address.end()) {
+        s += "\033[3;33m" + static_array_address[str] + "\033[0m" + "]";
+        return s;
+    }
+    int tmp = 0;
     auto i_ref = area.begin();
     auto i_ret = value.begin();
     for (auto& it : name) {
@@ -173,6 +298,8 @@ std::string STACK::return_address(std::string str, int arg) // str == name // po
     }
     if (s == "[") {
         s = M._R->return_address(str, arg);
+        //std::cout << s;
+        //exit(0);
         if (s != "[       ]") {
             return s;
         }
@@ -194,15 +321,10 @@ std::string STACK::return_address(std::string str, int arg) // str == name // po
 
 std::string STACK::return_value(const std::string& str) // poxancum enq address
 {
-    int index = 0;
     for (auto& it : address) {
         if (it.second == str) {
-            index = it.first;
-            break;
+            return value[it.first];
         }
-    }
-    if (index != 0) {
-        return value[index];
     }
     std::string ss = M._D->return_value(str);
     if (ss != "") {
@@ -265,7 +387,19 @@ int STACK::stack_pointer(std::string str)
         } else if (line[3] == "new") {
             value[index] = M._H->heap_allocate_space(line[1] ,line[4]); // վերձնում ենք տարածք heap֊ից
         } else {
-            value[index] = return_address(line[3]);
+            if (line[3][0] == '*') {
+                line[3].erase(0, 1);
+            }
+            //std::cout << line[3];
+            line[3] = return_address(line[3]);
+            if (line[3][0] == '[') {
+                value[index] = line[3];
+            } else {
+                t = "[";
+                t += "\033[3;33m" + line[3] + "\033[0m" + "]";
+                value[index] = t;
+                line[3] = t;
+            }
             M._H->add_pointer_allocate_space(line[1], line[3]);
         }
     }
@@ -309,7 +443,13 @@ int STACK::stack_lvalue_referenc(std::string str)
 
         //std::cout << value[index] << "AAA";
     } else {
-        value[index] = return_address(line[3]);
+        t = return_address(line[3]);
+        if (t[0] != '[') {
+            line[3] = "[";
+           value[index] = line[3] +  "\033[3;33m" + t + "\033[0m" + "]";
+        } else {
+            value[index] = return_address(line[3]);
+        }
     }
     area[index] = it->second;
     ++index;
@@ -383,16 +523,37 @@ int STACK::stack_give_value(std::string str)
                     M._F->clear_rezolve_function();
 
                 }
+                if (line[3][0] == '*') {
+                    if (line[3][1] == '*') {
+                        line[3].erase(0, 2);
+                    } else {
+                        line[3].erase(0, 1);
+                    }
+                    line[3] = return_address(line[3], 1);
+                    if (line[3].find("0x") == -1) {
+                        stack_change_value(line[1], line[3]); // esel tt = 88
+                    } else {
+                        line[3] = return_recursive_value(find_address(line[3]));
+                        stack_change_value(line[1], line[3]); 
+                        ++index;
+                    }
+                    return 0;
+                }
+
                 if (line[3][0] == 39 || (line[3][0] >= '0' && line[3][0] <= '9')) {
                     tm = install_string(line[3]);
                 } else {
                     if (line[3][0] != '[') {
-                        line[3] = return_address(line[3], 1);
+                        line[3] = return_address(line[3], 1);// ete 1 apa value ete che address
+                        //std::cout << line[3] << " ";
+                        //exit(0);
                     }
                     if (line[3].size() > 12 && line[3][0] == '[') {// es en depqna erb referencic uzum en arjeqy
                         int x = line[3].find("0x");
-                        line[3] = line[3].substr(x, 10);
-                        line[3] = return_value(line[3]);
+                        if (x != -1) {
+                            line[3] = line[3].substr(x, 10);
+                            line[3] = return_value(line[3]);
+                        }
                     }
                     tm = install_string(line[3]);
                 }
@@ -414,7 +575,7 @@ int STACK::stack_give_value(std::string str)
 
 
 
-void STACK::transfer(const std::vector<std::string>& vec, std::string str) // stexic miangamic global vectorin
+void STACK::transfer(std::vector<std::string>& vec, std::string str) // stexic miangamic global vectorin
 {
     int f1 = str.find('(');
     int f2 = str.find(')');
@@ -443,6 +604,14 @@ void STACK::transfer(const std::vector<std::string>& vec, std::string str) // st
         } else if (vec[i].find('&') != -1 && vec[i].find("&&") == -1) {
             //tmp[k] = return_address(arg[i]);
             function_arguments_rezolve.push_back(return_address(arg[i]));
+        } else if(vec[i].find('[') != -1){
+            if (std::count(vec[i].begin(), vec[i].end(), '[') == 1) {
+                std::string return_index = arg[i] + "[0]";
+                function_arguments_rezolve.push_back(return_address(return_index));
+            } else {
+                std::string return_index = arg[i] + "[0][0]";
+                function_arguments_rezolve.push_back(return_address(return_index));
+            }
         } else {
             //tmp[k] = return_address(arg[i], 1);
             if (arg[i][0] == 39 || (arg[i][0] >= '0' && arg[i][0] <= '9')) {
@@ -516,19 +685,65 @@ std::vector<std::string> STACK::argument_rezolve(std::string str)
     return vec;
 }
 
+bool STACK::stack_change_address_for_value(std::string str_name, std::string str_value)
+{
+    //std::cout << str_name << " "  << str_name.size();
 
-void STACK::stack_change_value(std::string str_name, std::string str_value) // orinak heap ic poxum enq garbijov
+    static bool flag = true; // esi static vorovhetev recursiva
+
+    if (!(str_value[0] == 39 || (str_value[0] >= '0' && str_value[0] <= '9'))) {
+        //kkanchenq vor imananq arjeqy  ete mijiny hace a kam & *
+    }
+
+    //std::cout << str_name << " ";
+    for (auto& it : address) {
+        if (it.second == str_name) {
+            if (value[it.first].find("0x") == -1) {
+                flag = false;
+                value[it.first] = str_value;
+            } else {
+                str_name = find_address(value[it.first]);
+                stack_change_address_for_value(str_name, str_value);
+            }
+            return 0;
+        }
+    }
+    if (flag) {
+        //std::cout << "PPP";
+        if (M._H->change_value(str_name, str_value)) {
+            return 1;
+        }
+        //kkanchenq heap ic -----------------------------------------------------------------
+    }
+    flag = true;
+    return 1;
+}
+
+bool STACK::stack_change_value(std::string str_name, std::string str_value, bool flag) // orinak heap ic poxum enq garbijov
 {
     //std::cout << 222;
-    auto itr = value.begin();
+    //auto itr = value.begin();
     for (auto& it : name) {
         if (it.second == str_name) {
-            value[itr->first] = str_value;
-            return;
+            if (flag || value[it.first].find("0x") == -1) {
+                value[it.first] = str_value;
+            } else {
+                str_name = find_address(value[it.first]);
+                stack_change_address_for_value(str_name, str_value);
+            }
+            return 0;
         }
-        ++itr;
+        //++itr;
     }
-    M._F->function_stack_change_value(str_name, str_value);
+
+    //data bss---------------------------------------
+    if (M._H->change_value(str_name, str_value)) {
+        return 1;
+    }
+    //if (M._F->function_stack_change_value(str_name, str_value)) {
+      //  return 1;
+    //}
+    return 0;
 }
 
 void STACK::static_matrix(std::string str) //matrix //????????????????????????????????????????????===========
@@ -601,6 +816,7 @@ void STACK::static_matrix(std::string str) //matrix //??????????????????????????
     name[index] = "\033[3;33m(sizeof(" + name[index] + "\033[3;33m" + ") * " + std::to_string(column) + ")\033[0m";
     area[index] = "";
     ++index;
+    bool flag_array = true;
     for (int i = 0; i < column; ++i) {
        if (vec[j] == " ") { //////////////////hly es eli knayem
            ++j;
@@ -608,6 +824,10 @@ void STACK::static_matrix(std::string str) //matrix //??????????????????????????
        address[index] = address_adjuster(address[index-1], it->first);
        value[index] = install_string(vec[j++]);
        name[index] = line[1] + "[" + std::to_string(tmp_row) + "]" + "[" + std::to_string(i) + "]";
+       if (flag_array) {
+          static_array_address[line[1]] = address[index]; // anuny u hascen
+          flag_array = false;
+       }
        area[index] = it->second;
        ++index;
     }
@@ -751,6 +971,7 @@ void STACK::static_array(std::string str)
     ++index;
     int j = 0;
     int size = vec.size();
+    bool flag_array = true;
     for (int i = 0; i < count; ++i) {
           address[index] = address_adjuster(address[index-1], it->first);
           if (j < size) {
@@ -759,6 +980,10 @@ void STACK::static_array(std::string str)
             value[index] = garbij;
           }
           name[index] = line[1] + "[" + std::to_string(i) + "]";
+          if (flag_array) {
+             static_array_address[line[1]] = address[index];
+             flag_array = false;
+          }
           area[index] = it->second;
           ++index;
     }
@@ -809,6 +1034,73 @@ void HEAP::print()
     RAM_print(style, address, name, value, area);
 }
 
+std::string HEAP::return_name(std::string str)
+{
+    for (auto& it : address) {
+        if(it.second == str) {
+            if (value[it.first].find("0x") == -1) {
+                //std::cout << '\n' << value[it.first] << '\n';
+                return name[it.first];
+            } else {
+                return return_name(find_address(value[it.first]));
+            }
+        }
+    }
+    // data  bss heap
+    return "";
+
+}
+
+std::string HEAP::return_recursive_value(std::string str)//recursive mana galis minjev hasni arjeqi      address poxancum enq inqy gtnum veradardznum e arjeqy
+{
+    for (auto& it : address) {
+        if(it.second == str) {
+            if (value[it.first].find("0x") == -1) {
+                return value[it.first];
+            } else {
+                return return_recursive_value(find_address(value[it.first]));
+            }
+        }
+    }
+    // data  bss
+    return "";
+}
+
+
+
+bool HEAP::change_address_for_value(std::string str_name, std::string str_value)
+{
+    //std::cout << str_name << " "  << str_name.size();
+    for (auto& it : address) {
+        if (it.second == str_name) {
+            if (value[it.first].find("0x") == -1) {
+                value[it.first] = str_value;
+            } else {
+                str_name = find_address(value[it.first]);
+                return change_address_for_value(str_name, str_value);
+            }
+            return 0;
+        }
+    }
+    return 1;
+}
+
+
+bool HEAP::change_value(std::string str_name, std::string str_value)// anuny u te inchenq poxum
+{
+    for (auto& it : name) {
+        if (it.second == str_name) {
+            if (value[it.first].find("0x") == -1) {
+                value[it.first] = str_value;
+            } else {
+                str_name = find_address(value[it.first]);
+                change_address_for_value(str_name, str_value);
+            }
+            return 0;
+        }
+    }
+    return 1;
+}
 
 void HEAP::add_pointer_allocate_space(std::string new_str_name, std::string str_name)
 {
@@ -845,7 +1137,8 @@ std::string HEAP::heap_allocate_space(std::string Name, std::string str) //retur
     int num = 0;
     if (x != -1) {
         add_delete_heap_area(Name, 2);//ես ֆունկցիայով հասկանում ենք թէ heap֊ից ինչ տարածքէ վերձրել[] ? ()
-        count = std::stoi(str.substr(x+1, (x2 - x)-1)); //qanaky
+        //count = std::stoi(str.substr(x+1, (x2 - x)-1)); //qanaky
+        count = M._S->array_element_count(str.substr(x+1, (x2 - x)-1));
         type_area = str.substr(0, x); // inch tip e
     } else if (x3 != -1) {
         add_delete_heap_area(Name, 1);
@@ -884,7 +1177,7 @@ std::string HEAP::heap_allocate_space(std::string Name, std::string str) //retur
         } else {
             value[index] = install_string(std::to_string(new_count));
         }
-        name[index] = Name + "[" + "0" + "]";
+        name[index] = Name + "[0]";
         area[index] = it->second;
         ++index;
     } else {
@@ -970,8 +1263,17 @@ void HEAP::add_delete_heap_area(std::string str, int num)
 {
     delete_heap_area[str] = num;
 }
-std::string HEAP::return_address(std::string, int arg)
+std::string HEAP::return_address(std::string str, int arg)
 {
+    for (auto& it : name) {
+        if (it.second == str) {
+            if (arg) {
+                return value[it.first];
+            } else {
+                return address[it.first];
+            }
+        }
+    }
     return "[       ]";
 }
 
@@ -1194,9 +1496,9 @@ int BSS::bss_pointer(std::string str)
 
     return 0;
 }
-int BSS::bss_lvalue_referenc(std::string){
-        std::cout << "BSS lvalue" << std::endl;
-    return 0;} // չի կարա ստեղ լվալյու լինի
+//int BSS::bss_lvalue_referenc(std::string){
+  //      std::cout << "BSS lvalue" << std::endl;
+   // return 0;} // չի կարա ստեղ լվալյու լինի
 
 
 std::string BSS::return_address(std::string str, int arg)
@@ -1579,6 +1881,9 @@ int TYPE::type_action(std::string str) {
     if (type_pointer.find(str) != type_pointer.end()) {
         return 3; // int*
     }
+    if (type_two_pointer.find(str) != type_two_pointer.end()) {
+        return 6; // int**
+    }
 
     return -1;
 }
@@ -1771,6 +2076,7 @@ std::string FUNCTION::function_call(std::string& str, int SP, std::map<int, std:
             // kareliya kazmakerpel swich ov kam functin pointer ov
             if (flag == -1) {
                     //urish gorcoxutyun  arr[0] = 9;
+                function_attribute(code[table]);
             } else if (flag == 1) {               // int || int&&
                                //ete orinak senca kanenq ajstex int a = foo();
                 function_stack_give_value(code[table]);
@@ -1787,6 +2093,8 @@ std::string FUNCTION::function_call(std::string& str, int SP, std::map<int, std:
             } else if (flag == 5) {
                 if_flag = true;
                 break;
+            } else if (flag == 6) {
+                function_stack_pointer(code[table]);
             }
         }
     }
@@ -1831,13 +2139,38 @@ std::string FUNCTION::function_call(std::string& str, int SP, std::map<int, std:
     return "";
 }
 
+void FUNCTION::function_attribute(std::string str)
+{
+    std::vector<std::string> line;
+    //std::string temprory = "";
+    std::stringstream s(str);
+    while (s >> str) {
+        line.push_back(str);
+    }
+    int size = line.size();
+    line[size-1].pop_back(); // es verjin ';' -i hamar
+    // heapum petqa unenanq change_value function vorpessi poxenq arjeqy
+    if (line[2] == "new") {
+        M._H->change_value(line[0], M._H->heap_allocate_space(line[0] ,line[3]));
+        //std::cout << M._H->heap_allocate_space(line[0] ,line[3]);
+    }
+}
+
+
+
 void FUNCTION::call_and_implementation()
 {
     std::string str = "0xFF011111";
-
     auto itr = rezolve_arguments.begin();
-    for (auto it : function_arguments_rezolve) {
+    for (auto& it : function_arguments_rezolve) {
         if (itr != rezolve_arguments.end()) {
+            if (itr->first[itr->first.size()-1] == ']') {
+                int x = itr->first.find('[');
+                auto& PTR = const_cast<std::string&>(itr->first);
+                std::string cut = itr->first;
+                cut = cut.substr(0, x);
+                PTR = cut;
+            }
             itr->second = it;
             ++itr;
         }
@@ -2188,16 +2521,17 @@ std::vector<std::string> FUNCTION::function_return_array_elements(std::string& s
 }
 
 
-void FUNCTION::function_stack_change_value(std::string str_name, std::string str_value) // orinak heap ic poxum enq garbijov
+bool FUNCTION::function_stack_change_value(std::string str_name, std::string str_value) // orinak heap ic poxum enq garbijov
 {
-    auto itr = value.begin();
+    //auto itr = value.begin();
     for (auto& it : name) {
         if (it.second == str_name) {
-            value[itr->first] = str_value;
-            return;
+            value[it.first] = str_value;
+            return 0;
         }
-        ++itr;
+        //++itr;
     }
+    return 1;
 }
 
 ////////////////////////////
