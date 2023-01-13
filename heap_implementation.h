@@ -1,6 +1,5 @@
 HEAP::HEAP()
 {
-    //style[i++] = "*/*";
     style[i++] = "        \033[4;32mHEAP---------------------------------------------------------START\033[0m\n";
 }
 void HEAP::print()
@@ -17,19 +16,16 @@ std::string HEAP::return_name(std::string str)
     for (auto& it : address) {
         if(it.second == str) {
             if (value[it.first].find("0x") == -1) {
-                //std::cout << '\n' << value[it.first] << '\n';
                 return name[it.first];
             } else {
                 return return_name(find_address(value[it.first]));
             }
         }
     }
-    // data  bss heap
     return "";
-
 }
 
-std::string HEAP::return_recursive_value(std::string str)//recursive mana galis minjev hasni arjeqi      address poxancum enq inqy gtnum veradardznum e arjeqy
+std::string HEAP::return_recursive_value(std::string str)
 {
     for (auto& it : address) {
         if(it.second == str) {
@@ -40,15 +36,11 @@ std::string HEAP::return_recursive_value(std::string str)//recursive mana galis 
             }
         }
     }
-    // data  bss
     return "";
 }
 
-
-
 bool HEAP::change_address_for_value(std::string str_name, std::string str_value)
 {
-    //std::cout << str_name << " "  << str_name.size();
     for (auto& it : address) {
         if (it.second == str_name) {
             if (value[it.first].find("0x") == -1) {
@@ -63,8 +55,7 @@ bool HEAP::change_address_for_value(std::string str_name, std::string str_value)
     return 0;
 }
 
-
-bool HEAP::change_value(std::string str_name, std::string str_value)// anuny u te inchenq poxum
+bool HEAP::change_value(std::string str_name, std::string str_value)
 {
     for (auto& it : name) {
         if (it.second == str_name) {
@@ -92,14 +83,13 @@ void HEAP::add_pointer_allocate_space(std::string new_str_name, std::string str_
 }
 
 
-std::string HEAP::heap_allocate_space(std::string Name, std::string str) //return address
+std::string HEAP::heap_allocate_space(std::string Name, std::string str)
 {
-    ++new_space_count; // te qani angam e new areac
+    ++new_space_count;
     static bool b = true;
     if (index == 100) {
         address[index-1] = "0xE0000000";
     }
-   
     std::string return_address = "[";
     std::string type_area = "";
     int x = str.find('[');
@@ -111,33 +101,27 @@ std::string HEAP::heap_allocate_space(std::string Name, std::string str) //retur
     bool allocate_one = false;
     int new_count = 0;
     std::string char_tmp = "";
-
     int num = 0;
     if (x != -1) {
-        add_delete_heap_area(Name, 2);//ես ֆունկցիայով հասկանում ենք թէ heap֊ից ինչ տարածքէ վերձրել[] ? ()
-        //count = std::stoi(str.substr(x+1, (x2 - x)-1)); //qanaky
+        add_delete_heap_area(Name, 2);
         count = M._S->array_element_count(str.substr(x+1, (x2 - x)-1));
-        type_area = str.substr(0, x); // inch tip e
+        type_area = str.substr(0, x);
     } else if (x3 != -1) {
         add_delete_heap_area(Name, 1);
-        type_area = str.substr(0, x3); // inch tip e
+        type_area = str.substr(0, x3);
         if (type_area == "char" || type_area == "double" || type_area == "float") {
             char_tmp = str.substr(x3+1, (x4 - x3)-1);
         } else {
-            new_count = std::stoi(str.substr(x3+1, (x4 - x3)-1)); //qanaky
+            new_count = std::stoi(str.substr(x3+1, (x4 - x3)-1));
         }
         allocate_one = true;
         count = 1;
-        //////////////////// int* p = new int(5);
     } else {
-        //str.pop_back();
-        type_area = str; // inch tip e
+        type_area = str;
         count = 1;
     }
-
-    mp = type_sizeof_and_appearance(type_area); // sizeof y u qani byte e
+    mp = type_sizeof_and_appearance(type_area);
     auto it = mp.begin();
-
     int temprory = index;
     address[index] = address[index-1];
     value[index] = "\033[3;33m=>\033[0m";
@@ -146,7 +130,6 @@ std::string HEAP::heap_allocate_space(std::string Name, std::string str) //retur
     area[index] = "";
     delete_space[Name] = index;
     ++index;
-   
     if (allocate_one) {
         address[index] = address_adjuster(address[index-1], it->first);
         return_address += "\033[3;33m" + address[index] + "\033[0m" + "]";
@@ -174,28 +157,24 @@ std::string HEAP::heap_allocate_space(std::string Name, std::string str) //retur
 
     if (b) {
         address.erase(99);
-        b = false; // anuny poxanci
+        b = false;
     }
     temprory_address = return_address;
     return return_address;
 }
 
-std::string HEAP::search_pointer(std::string str) // man enq galis ayn pointery vory nayum e heap in vor haskananq te vori vra e nayum;
+std::string HEAP::search_pointer(std::string str)
 {
     for (auto& iii : new_pointer_heap) {
-        //std::cout << iii.first << "\n";
         if (str == iii.first) {
             return iii.second;
         }
-        //std::cout << iii.first << " " << iii.second << "\n";
     }
     return "1";
 }
 
-void HEAP::delete_allocate_space(std::string str, bool flag) // flagy nra hamara vor ogtagorcoxy delete chani destructori mijic poxancenq true
+void HEAP::delete_allocate_space(std::string str, bool flag)
 {
-    // ete che uremn destructori mejic kkanchenq
-    //std::cout << str << " ";
     if (new_space_count <= 0) {
         return;
     }
@@ -206,14 +185,11 @@ void HEAP::delete_allocate_space(std::string str, bool flag) // flagy nra hamara
         if (str.find('[') != -1) {
             s >> str;
             str.pop_back();
-
             std::string new_pointer = search_pointer(str);
             if (new_pointer != "1") {
                 str = new_pointer;
             }
-
             if (delete_heap_area[str] != 2) {
-                        //std::cout << delete_heap_area[str] << " " << str;
                 return;
             }
         } else {
@@ -235,7 +211,6 @@ void HEAP::delete_allocate_space(std::string str, bool flag) // flagy nra hamara
             name[it.second] = leak;
         }
     }
-
 }
 
 void HEAP::add_delete_heap_area(std::string str, int num)

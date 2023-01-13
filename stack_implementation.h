@@ -11,14 +11,12 @@ void STACK::print()
     address[index++] = "\033[4;32mSTACK----------------------------------------------------------END\033[0m\n";
     RAM_print(style, address, name, value, area);
 }
-void STACK::function_area(std::string str) { //       int main() syntax a sarqum
-    //std::cout << str;
+void STACK::function_area(std::string str)
+{
     str = prabel + str;
     style[i++] = str;
 }
 
-// else if (line[3] == "new") {
-  //          value[index] = M._H->heap_allocate_space(line[1] ,line[4]); 
 void STACK::attribute(std::string str)
 {
     std::vector<std::string> line;
@@ -27,8 +25,7 @@ void STACK::attribute(std::string str)
         line.push_back(str);
     }
     int size = line.size();
-    line[size-1].pop_back(); // es verjin ';' -i hamar
-    // heapum petqa unenanq change_value function vorpessi poxenq arjeqy
+    line[size-1].pop_back();
     if (line[0][0] == '*') {
         if (line[0][1] == '*') {
             line[0].erase(0, 2);
@@ -36,10 +33,8 @@ void STACK::attribute(std::string str)
             line[0].erase(0, 1);
         }
         line[0] = "&" + line[0];
-        //std::cout << line[0] << "A\n";
         line[0] = find_address(return_address(line[0]));
-        //std::cout << line[0] << "A\n";
-        line[0] = return_name(line[0]); // orinak *P P n vortexe cuyc talis num kam arr[0] ev = 8
+        line[0] = return_name(line[0]);
         std::cout << line[0] << "A\n";
     }
     if (line[2][0] == 34) {
@@ -53,35 +48,30 @@ void STACK::attribute(std::string str)
         M._H->heap_allocate_space(line[0] ,line[3]);
         stack_change_value(line[0], M._H->temprory_address, 1);
         return;
-        //std::cout << M._H->heap_allocate_space(line[0] ,line[3]);
     } else if (line[2][0] == 39 || (line[2][0] >= '0' && line[2][0] <= '9')) {
         stack_change_value(line[0], install_string(line[2]));
         return;
     } else if (std::isalpha(line[2][0])) {
 
-        if (line[2] == "nullptr" || line[2] == "NULL") {           // es erb p = nullptr
+        if (line[2] == "nullptr" || line[2] == "NULL") {
             stack_change_value(line[0], install_string(line[2]), 1);
             return;
         }
-
-        line[2] = return_address(line[2], 1);// ete 1 apa value ete che address
-        //std::cout << line[2];
-        if (line[2] == tmp_nullptr || line[2] == tmp_null) { // es erbvor klini int* p = nullptr
+        line[2] = return_address(line[2], 1);
+        if (line[2] == tmp_nullptr || line[2] == tmp_null) {
             stack_change_value(line[0], line[2], 1);
             return;
         }
-
-        if (line[2].find("0x") != -1) { // es erb vor valuen klini hasce
+        if (line[2].find("0x") != -1) {
             stack_change_value(line[0], line[2], 1);
         } else {
-            stack_change_value(line[0], install_string(line[2])); // esel tt = 88
+            stack_change_value(line[0], install_string(line[2]));
         }
         return;
-
     } else if (line[2][0] == '&') {
         line[2].erase(0, 1);
-        line[2] = return_address(line[2]);// ete 1 apa value ete che address
-        stack_change_value(line[0], line[2], 1); // 1-y nra hamara vor henc et hascein veragri
+        line[2] = return_address(line[2]);
+        stack_change_value(line[0], line[2], 1);
     } else if (line[2][0] == '*') {
         if (line[2][1] == '*') {
             line[2].erase(0, 2);
@@ -90,17 +80,15 @@ void STACK::attribute(std::string str)
         }
         line[2] = return_address(line[2], 1);
         if (line[2].find("0x") == -1) {
-            stack_change_value(line[0], line[2]); // esel tt = 88
+            stack_change_value(line[0], line[2]);
         } else {
             line[2] = return_recursive_value(find_address(line[2]));
             stack_change_value(line[0], line[2]); 
         }
     }
-
 }
 
-
-std::string STACK::return_name(std::string str) // poxancum em anuny *P vor veradardznie  arr[0]
+std::string STACK::return_name(std::string str)
 {
     for (auto& it : address) {
         if(it.second == str) {
@@ -120,25 +108,19 @@ std::string STACK::return_name(std::string str) // poxancum em anuny *P vor vera
         return s;
     }
     return "";
-
 }
 
-std::string STACK::return_recursive_value(std::string str)//recursive mana galis minjev hasni arjeqi      address poxancum enq inqy gtnum veradardznum e arjeqy
+std::string STACK::return_recursive_value(std::string str)
 {
     for (auto& it : address) {
         if(it.second == str) {
-                //std::cout << 1;
             if (value[it.first].find("0x") == -1) {
-                //std::cout << value[it.first];
                 return value[it.first];
             } else {
-                //std::cout << 3;
                 return return_recursive_value(find_address(value[it.first]));
             }
         }
     }
-    //std::cout << str;
-    //exit(0);
     std::string s = M._H->return_recursive_value(str);
     if (s != "") {
         return s;
@@ -150,9 +132,8 @@ std::string STACK::return_recursive_value(std::string str)//recursive mana galis
     return "";
 }
 
-std::string STACK::return_address(std::string str, int arg) // str == name // popoxakan e
+std::string STACK::return_address(std::string str, int arg)
 {
-    
     char point = ' ';
     if (str[0] == '&') {
         point = '&';
@@ -180,7 +161,6 @@ std::string STACK::return_address(std::string str, int arg) // str == name // po
              }
              if (arg && s.find("0x") != -1) {
                 s = return_value(find_address(s));
-                 //std::cout << "sss" << " "  << s;
              }
              return s;
          }
@@ -193,8 +173,6 @@ std::string STACK::return_address(std::string str, int arg) // str == name // po
     }
     if (s == "[") {
         s = M._R->return_address(str, arg);
-        //std::cout << s;
-        //exit(0);
         if (s != "[       ]") {
             return s;
         }
@@ -214,7 +192,7 @@ std::string STACK::return_address(std::string str, int arg) // str == name // po
     return s + prabel + "]";
 }
 
-std::string STACK::return_value(const std::string& str) // poxancum enq address
+std::string STACK::return_value(const std::string& str)
 {
     for (auto& it : address) {
         if (it.second == str) {
@@ -254,15 +232,9 @@ int STACK::stack_pointer(std::string str)
         if (line[3].find('(') != -1) {
 
             std::string stack_call = T.return_address(line[3]);
-
-            std::vector<std::string> vec = argument_rezolve(stack_call); // arguments   int a  int b
+            std::vector<std::string> vec = argument_rezolve(stack_call);
             transfer(vec, str);
-            //for (int i = 0; i < function_arguments_rezolve.size(); ++i) {
-              //  std::cout << function_arguments_rezolve[i] << '\n';
-            //}
-
             std::string value_inc = F.function_call(stack_call, SP, code);
-
             M._F->clear_rezolve_function();
 
             int cat = value_inc.find('!');
@@ -280,14 +252,13 @@ int STACK::stack_pointer(std::string str)
             }
             line[3].pop_back();
             line[3].erase(0, 1);
-            value[index] = M._R->stack_call_char_pointer(line[1], line[3]);//"const char arr"////////***************************start heap
+            value[index] = M._R->stack_call_char_pointer(line[1], line[3]);
         } else if (line[3] == "new") {
-            value[index] = M._H->heap_allocate_space(line[1] ,line[4]); // վերձնում ենք տարածք heap֊ից
+            value[index] = M._H->heap_allocate_space(line[1] ,line[4]);
         } else {
             if (line[3][0] == '*') {
                 line[3].erase(0, 1);
             }
-            //std::cout << line[3];
             line[3] = return_address(line[3]);
             if (line[3][0] == '[') {
                 value[index] = line[3];
@@ -310,7 +281,7 @@ int STACK::stack_pointer(std::string str)
     function_arguments_rezolve.clear();
     return 0;
 }
-//////////////////////////////////////////////////////hima pointeri ev referanci hamar 
+
 int STACK::stack_lvalue_referenc(std::string str)
 {
     static bool b = false;
@@ -332,17 +303,10 @@ int STACK::stack_lvalue_referenc(std::string str)
 
     if (line[3].find('(') != -1) {
         std::string stack_call = T.return_address(line[3]);
-        std::vector<std::string> vec = argument_rezolve(stack_call); // arguments   int a  int b
+        std::vector<std::string> vec = argument_rezolve(stack_call);
         transfer(vec, str);
-        //for (int i = 0; i < function_arguments_rezolve.size(); ++i) {
-          //  std::cout << function_arguments_rezolve[i] << '\n';
-        //}
-
         value[index] = F.function_call(stack_call, SP, code);
-
         M._F->clear_rezolve_function();
-
-        //std::cout << value[index] << "AAA";
     } else {
         t = return_address(line[3]);
         if (t[0] != '[') {
@@ -403,30 +367,22 @@ int STACK::stack_give_value(std::string str)
             if (i == 0) {
                 mp = type_sizeof_and_appearance(line[i]);
                 auto it = mp.begin();
-                address[index] = address_adjuster(address[index-1], it->first);// kara inchvor mi tex index-1 y tox tpi???????????????
+                address[index] = address_adjuster(address[index-1], it->first);
                 area[index] = it->second;
             }
             if (i == 1) {
                 name[index] = line[i];
             }
             if (i == 2) {
-                //value[index] = garbij;
-                continue;/////////////////////////////////////////////////// =, +=, -= ..............................................
+                continue;
             }
             if (i == 3) {
                 if (line[3].find('(') != -1) {
                     std::string stack_call = T.return_address(line[3]);
-                    //std::cout << str << " ";
-                    std::vector<std::string> vec = argument_rezolve(stack_call); // arguments   int a  int b
+                    std::vector<std::string> vec = argument_rezolve(stack_call);
                     transfer(vec, str);
-                    //for (int i = 0; i < function_arguments_rezolve.size(); ++i) {
-                        //std::cout << function_arguments_rezolve[i] << '\n';
-                    //}
-
                     line[3] = F.function_call(stack_call, SP, code);
-
                     M._F->clear_rezolve_function();
-
                 }
                 if (line[3][0] == '*') {
                     if (line[3][1] == '*') {
@@ -436,24 +392,21 @@ int STACK::stack_give_value(std::string str)
                     }
                     line[3] = return_address(line[3], 1);
                     if (line[3].find("0x") == -1) {
-                        stack_change_value(line[1], line[3]); // esel tt = 88
+                        stack_change_value(line[1], line[3]);
                     } else {
                         line[3] = return_recursive_value(find_address(line[3]));
-                        stack_change_value(line[1], line[3]); 
+                        stack_change_value(line[1], line[3]);
                         ++index;
                     }
                     return 0;
                 }
-
                 if (line[3][0] == 39 || (line[3][0] >= '0' && line[3][0] <= '9')) {
                     tm = install_string(line[3]);
                 } else {
                     if (line[3][0] != '[') {
-                        line[3] = return_address(line[3], 1);// ete 1 apa value ete che address
-                        //std::cout << line[3] << " ";
-                        //exit(0);
+                        line[3] = return_address(line[3], 1);
                     }
-                    if (line[3].size() > 12 && line[3][0] == '[') {// es en depqna erb referencic uzum en arjeqy
+                    if (line[3].size() > 12 && line[3][0] == '[') {
                         int x = line[3].find("0x");
                         if (x != -1) {
                             line[3] = line[3].substr(x, 10);
@@ -463,7 +416,6 @@ int STACK::stack_give_value(std::string str)
                     tm = install_string(line[3]);
                 }
              }
-                    //std::cout << tm;
              if (tm != "[          ]") {
                 value[index] = tm;
              }
@@ -478,9 +430,7 @@ int STACK::stack_give_value(std::string str)
     return 0;
 }
 
-
-
-void STACK::transfer(std::vector<std::string>& vec, std::string str) // stexic miangamic global vectorin
+void STACK::transfer(std::vector<std::string>& vec, std::string str)
 {
     int f1 = str.find('(');
     int f2 = str.find(')');
@@ -498,16 +448,11 @@ void STACK::transfer(std::vector<std::string>& vec, std::string str) // stexic m
             }
         }
     }
-
     int k = 0;
     for (int i = 0; i < arg.size(); ++i) {
-        //std::cout << return_address(arg[i], 1) << '\n';
-        //std::cout << vec[i] << '\n';
         if (vec[i].find('*') != -1) {
-            //tmp[k] = return_address(arg[i]);
             function_arguments_rezolve.push_back(return_address(arg[i]));
         } else if (vec[i].find('&') != -1 && vec[i].find("&&") == -1) {
-            //tmp[k] = return_address(arg[i]);
             function_arguments_rezolve.push_back(return_address(arg[i]));
         } else if(vec[i].find('[') != -1){
             if (std::count(vec[i].begin(), vec[i].end(), '[') == 1) {
@@ -518,7 +463,6 @@ void STACK::transfer(std::vector<std::string>& vec, std::string str) // stexic m
                 function_arguments_rezolve.push_back(return_address(return_index));
             }
         } else {
-            //tmp[k] = return_address(arg[i], 1);
             if (arg[i][0] == 39 || (arg[i][0] >= '0' && arg[i][0] <= '9')) {
                 function_arguments_rezolve.push_back(install_string(arg[i]));
             } else {
@@ -537,12 +481,10 @@ void STACK::transfer(std::vector<std::string>& vec, std::string str) // stexic m
 
 std::vector<std::string> STACK::argument_rezolve(std::string str)
 {
-    //std::cout << str << "s" << '\n';
     std::vector<std::string> vec;
     int f1 = str.find('(');
     int f2 = str.find(')');
     std::string str1 = str.substr(f1 + 1, (f2 - f1));
-
     std::string tmp = "";
     std::stringstream s(str1);
     while (s >> str1) {
@@ -567,17 +509,13 @@ std::vector<std::string> STACK::argument_rezolve(std::string str)
         int k = 0;
         bool b = true;
         while (P >> first1) {
-            //std::cout << first1 << " \n";
             if (b && k == 1) {
                 M._F->rezolve_arguments[first1] = "";
                 M._F->vector_rezolv_arguments.push_back(first1);
-                //std::cout << first1 << " ";
                 second1 = first1;
                 b = false;
             } else if (k == 3){
-                //std::cout << first1 << " ";
                 if (first1[0] >= '0' && first1[0] <= '9' || first1[0] == 39) {
-                    //std::cout << first1 << " " << second1;
                     M._F->rezolve_arguments[second1] = first1;
                 } else {
                     first1 = M._D->return_address(first1);
@@ -590,21 +528,12 @@ std::vector<std::string> STACK::argument_rezolve(std::string str)
             ++k;
         }
     }
-    //exit(0);
     return vec;
 }
 
 bool STACK::stack_change_address_for_value(std::string str_name, std::string str_value)
 {
-    //std::cout << str_name << " "  << str_name.size();
-
-    static bool flag = true; // esi static vorovhetev recursiva
-
-    if (!(str_value[0] == 39 || (str_value[0] >= '0' && str_value[0] <= '9'))) {
-        //kkanchenq vor imananq arjeqy  ete mijiny hace a kam & *
-    }
-
-    //std::cout << str_name << " ";
+    static bool flag = true;
     for (auto& it : address) {
         if (it.second == str_name) {
             if (value[it.first].find("0x") == -1) {
@@ -618,24 +547,19 @@ bool STACK::stack_change_address_for_value(std::string str_name, std::string str
         }
     }
     if (flag) {
-        //std::cout << "PPP";
         if (M._H->change_value(str_name, str_value)) {
             return 1;
         }
         if (M._D->data_change_value(str_name, str_value)) {
             return 1;
         }
-        //kkanchenq heap ic -----------------------------------------------------------------
     }
     flag = true;
     return 1;
 }
 
-bool STACK::stack_change_value(std::string str_name, std::string str_value, bool flag) // orinak heap ic poxum enq garbijov
+bool STACK::stack_change_value(std::string str_name, std::string str_value, bool flag)
 {
-
-   // std::cout << 222;
-    //auto itr = value.begin();
     for (auto& it : name) {
         if (it.second == str_name) {
             if (flag || value[it.first].find("0x") == -1) {
@@ -646,10 +570,7 @@ bool STACK::stack_change_value(std::string str_name, std::string str_value, bool
             }
             return 1;
         }
-        //++itr;
     }
-
-    //data bss---------------------------------------
     if (M._H->change_value(str_name, str_value)) {
         return 1;
     }
@@ -659,16 +580,14 @@ bool STACK::stack_change_value(std::string str_name, std::string str_value, bool
     return 0;
 }
 
-void STACK::static_matrix(std::string str) //matrix //????????????????????????????????????????????===========
+void STACK::static_matrix(std::string str)
 {
-    //std::cout << str << '\n';
-    //exit(0);
     static bool b = false;
     if (index == 100) {
         b = true;
         address[index-1] = "0x00000000";
     }
-    std::string tmp = ""; // [55] = {1,2};
+    std::string tmp = "";
     std::stringstream s(str);
     std::vector<std::string> line;
     bool flag = false;
@@ -681,15 +600,11 @@ void STACK::static_matrix(std::string str) //matrix //??????????????????????????
         }
     }
     line.push_back(tmp);
-    //for (auto it : line) {
-      //  std::cout << it << "'";
-    //}
-    //exit(0);
     int cut = line[1].find('[');
     int cut1 = 0;
     int name_cut = cut;
-    int row = 0; // toxeri qanaky
-    int column = 0;// syuneri qanaky
+    int row = 0;
+    int column = 0;
     int x = 2;
     do {
         cut1 = cut;
@@ -698,7 +613,7 @@ void STACK::static_matrix(std::string str) //matrix //??????????????????????????
         }
         tmp = line[1].substr(cut1 + 1, (cut - cut1) -1);
         if (tmp == "") {
-            row = 0; // es en depqna vor chuni grac veci sizenel elementneri qanakna
+            row = 0;
         } else {
             if (x == 2) {
                 row = array_element_count(tmp);
@@ -709,13 +624,7 @@ void STACK::static_matrix(std::string str) //matrix //??????????????????????????
         ++cut;
         --x;
     } while (x > 0);
-   // std::cout << row << " " << column;
-    std::vector<std::string> vec = return_matrix_elements(line[3], column, row); //--stex kdzem vor {{1,2,3},3,3} ashxati
-
-    //for (auto it : vec) {
-      //  std::cout << it;
-    //}
-    //exit(0);
+    std::vector<std::string> vec = return_matrix_elements(line[3], column, row);
     if (!row) {
         ++row;
         for (int i = 0; i < vec.size(); ++i) {
@@ -724,7 +633,6 @@ void STACK::static_matrix(std::string str) //matrix //??????????????????????????
             }
         }
     }
-
     std::map<int, std::string> mp = type_sizeof_and_appearance(line[0]);
     line[1] = line[1].substr(0, name_cut);
     auto it = mp.begin();
@@ -741,20 +649,19 @@ void STACK::static_matrix(std::string str) //matrix //??????????????????????????
     ++index;
     bool flag_array = true;
     for (int i = 0; i < column; ++i) {
-       if (vec[j] == " ") { //////////////////hly es eli knayem
+       if (vec[j] == " ") {
            ++j;
        }
        address[index] = address_adjuster(address[index-1], it->first);
        value[index] = install_string(vec[j++]);
        name[index] = line[1] + "[" + std::to_string(tmp_row) + "]" + "[" + std::to_string(i) + "]";
        if (flag_array) {
-          static_array_address[line[1]] = address[index]; // anuny u hascen
+          static_array_address[line[1]] = address[index];
           flag_array = false;
        }
        area[index] = it->second;
        ++index;
     }
-
     address[temprory] = "\033[3;33m" + line[1] + "[" + std::to_string(tmp_row) + "]" + "\033[0m";
     ++tmp_row;
     } while (tmp_row < row);
@@ -775,7 +682,6 @@ std::vector<std::string> STACK::return_matrix_elements(const std::string& str, i
     for (int i = 1; i < size; ++i) {
         if (str[i] == '{') {
             if (num < column) {
-                //std::cout << 1;
                 ++white_space;
                 vec.push_back(" ");
                 num = column;
@@ -805,7 +711,6 @@ std::vector<std::string> STACK::return_matrix_elements(const std::string& str, i
             }
             if (i < size) {
                 ++white_space;
-                //std::cout << 2;
                 vec.push_back(" ");
             }
             --i;
@@ -815,7 +720,6 @@ std::vector<std::string> STACK::return_matrix_elements(const std::string& str, i
                 --num;
                 if (!num) {
                     num = column;
-                //std::cout << 3;
                 ++white_space;
                     vec.push_back(" ");
                 }
@@ -830,7 +734,6 @@ std::vector<std::string> STACK::return_matrix_elements(const std::string& str, i
         --num;
        vec.push_back(tmp);
     }
-    //std::cout << num;
     if (num && num < column) {
         for (int i = 0; i < num; ++i) {
             vec.push_back("0");
@@ -838,22 +741,15 @@ std::vector<std::string> STACK::return_matrix_elements(const std::string& str, i
     }
         while (white_space < row) {
         vec.push_back(" ");
-         //   std::cout << 22 << '\n';
         for (int i = 0; i < column; ++i) {
             vec.push_back("0");
         }
         ++white_space;
     }
-      //for (auto it : vec) {
-        //std::cout << it;
-    //}
-    //exit(0);
-
-    //std::cout << white_space << " " << row;
     return vec;
 }
 
-int STACK::array_element_count(std::string tmp) // "int arr["4"]" elementneri qanaky
+int STACK::array_element_count(std::string tmp)
 {
      if (tmp[0] >= '0' && tmp[0] <= '9') {
          return std::stoi(tmp);
@@ -867,17 +763,14 @@ int STACK::array_element_count(std::string tmp) // "int arr["4"]" elementneri qa
      return 0;
 }
 
-
-//char arr[] = {'a', 'a', 'a', '\0'};
 void STACK::static_array(std::string str)
 {
-    //    ete const lini stexic miangamic data kuxarmem ///
     static bool b = false;
     if (index == 100) {
         b = true;
         address[index-1] = "0x00000000";
     }
-    std::string tmp = ""; // [55] = {1,2};
+    std::string tmp = "";
     std::stringstream s(str);
     std::vector<std::string> line;
     bool flag = false;
@@ -899,11 +792,10 @@ void STACK::static_array(std::string str)
     y = line[1].find(']');
     tmp = line[1].substr(x + 1, (y - x) -1);
     if (tmp == "") {
-        count = vec.size(); // es en depqna vor chuni grac veci sizenel elementneri qanakna
+        count = vec.size();
     } else {
         count = array_element_count(tmp);
     }
-    //tmp == arr[0]
     while (line[1].size() > x) {
         line[1].pop_back();
     }
@@ -932,9 +824,7 @@ void STACK::static_array(std::string str)
           area[index] = it->second;
           ++index;
     }
-
     address[temprory] = "\033[3;33m" + line[1] + "\033[0m";
-
     if (b) {
         address.erase(99);
         b = false;

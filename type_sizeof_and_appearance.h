@@ -99,9 +99,6 @@ std::map<int, std::string> type_sizeof_and_appearance(const std::string& str) {
             type_byte = it->second;
         }
     }
-    //int*&
-
-
     for (auto& it : mp) {
         tmp += it.second;
     }
@@ -109,11 +106,3 @@ std::map<int, std::string> type_sizeof_and_appearance(const std::string& str) {
     mp[type_byte] = tmp;
     return mp;
 }
-
-/*
- std::map<int, std::string> mp = type_sizeof_and_appearance("char*");
-    auto it = mp.begin();
-    std::cout << it->first << " " << it->second << '\n';
-}
-*/
-

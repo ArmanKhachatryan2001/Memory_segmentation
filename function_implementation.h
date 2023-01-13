@@ -1,16 +1,6 @@
-std::string FUNCTION::return_address(std::string str, int arg) // str == name // popoxakan e
+std::string FUNCTION::return_address(std::string str, int arg)
 {
     char point = ' ';
-
-
-
-    //static int i = 0;
-    //++i;
-    //std::cout << str << " " << arg <<  '\n';
-    //exit(0);
-
-
-
     std::string str4 = str;
     if (str[0] == '&') {
         point = '&';
@@ -20,41 +10,25 @@ std::string FUNCTION::return_address(std::string str, int arg) // str == name //
     int tmp = 0;
     int search = 0;
     for (auto& ref : function_area) {
-       // std::cout << ref.first << " " << ref.second << '\n';
         if (ref.second == str) {
             search = ref.first;
-            //std::cout << str << " " << search <<  "s\n";
             break;
         }
     }
-    ///if (i == 2) {
-       // exit(0);
-    //}
     std::string s = "[";
     std::string ssr = "";
-    //std::cout << str <<  " " << arg << " " << search<<  '\n';
-    //exit(0);
     if (search) {
         if((area[search].find('&') != -1 && area[search].find("&&") == -1) || (area[search].find('*') != -1) && point != '&') {
             s += value[search];
             s.erase(1,1);
-            //std::cout << s << "S";
-            //exit(0);
             if (arg == 2 && s.find("0x") != -1) {
-                //std::cout << s;
-                //exit(0);
                 s = find_address(s);
                 s = return_recursive_value(s);
-    //std::cout << s << '\n';
-    //std::cout << str <<" " << arg << " A " <<  '\n';
-    //exit(0);
-                }
-         //   std::cout << s << " " << "  A";
+            }
         } else {
             if (arg == 0) {
                s += "\033[3;33m" + address[search] + "\033[0m" + "]";
             } else {
-                //std::cout << value[search] << " < ";
                return value[search];
             }
         }
@@ -97,7 +71,6 @@ std::string FUNCTION::return_address(std::string str, int arg) // str == name //
     }
     return s + prabel + "]";
 }
-
 
 void FUNCTION::function_stack_lvalue_referenc(std::string str)
 {
@@ -159,12 +132,11 @@ void FUNCTION::function_stack_pointer(std::string str)
             }
             line[3].pop_back();
             line[3].erase(0, 1);
-            value[index] = M._R->stack_call_char_pointer(line[1], line[3]);//"const char arr"////////***************************start heap
+            value[index] = M._R->stack_call_char_pointer(line[1], line[3]);
         } else if (line[3] == "new") {
-            value[index] = M._H->heap_allocate_space(line[1] ,line[4]); // վերձնում ենք տարածք heap֊ից
+            value[index] = M._H->heap_allocate_space(line[1] ,line[4]);
         } else if (line[3][0] == '*') {
-                line[3].erase(0, 1);
-            //std::cout << line[3];
+            line[3].erase(0, 1);
             line[3] = return_address(line[3]);
             if (line[3][0] == '[') {
                 value[index] = line[3];
@@ -176,7 +148,7 @@ void FUNCTION::function_stack_pointer(std::string str)
             }
             M._H->add_pointer_allocate_space(line[1], line[3]);
         } else {
-            value[index] = return_address(line[3], 1); // int a = b; (1)
+            value[index] = return_address(line[3], 1);
         }
     }
     area[index] = it->second;
@@ -190,20 +162,17 @@ void FUNCTION::function_stack_pointer(std::string str)
     return;
 }
 
-
-std::string FUNCTION::function_call(std::string& str, int SP, std::map<int, std::string>& code) // functian texadrelu hamar
+std::string FUNCTION::function_call(std::string& str, int SP, std::map<int, std::string>& code)
 {
-    call_and_implementation(); // es functian kapum e functiayi kanchy u poxancvac argumentnery irar het
-
+    call_and_implementation();
     bool if_flag = false;
     std::stringstream s(str);
-    std::string return_type = ""; // inch tipi e veradeardznum functian
-    std::string temprory = ""; // ogtagorcelu
+    std::string return_type = "";
+    std::string temprory = "";
     int table = 0;
-    s >> table; // es te vortexic e sksvum functian
+    s >> table;
     s >> address[index]; // 0xF00000
-    s >> return_type; // inch tipi e veradardznum
-    //s >> temprory; // anuny u argumentnery
+    s >> return_type;
     std::string tt = "";
     if (!s.eof()) {
         std::getline(s, tt);
@@ -212,28 +181,23 @@ std::string FUNCTION::function_call(std::string& str, int SP, std::map<int, std:
     value[index] = "\033[9;32m" + function_prototype(return_type + temprory) + "\033[0m";
     area[index] = "";
     name[index] = "";
-    prev_address = address[index]; // te inch hasceic e sksvum
+    prev_address = address[index];
     ++index;
-    /////////////////////functiayi kancher ++SP_TMP
-    //returni pahnel stexic
     while (++table) {
         std::string tmp = "";
         std::stringstream clear_prabel(code[table]);
         clear_prabel >> tmp;
         if (tmp != "{" && tmp != "}" && tmp[0] != '/') {
-            //tepa te gorcoxutyun
-            int flag = type_and_action.type_action(tmp); //class է որպեսզի հասկանա ինչ տիպ է
-            // kareliya kazmakerpel swich ov kam functin pointer ov
+            int flag = type_and_action.type_action(tmp);
             if (flag == -1) {
-                    //urish gorcoxutyun  arr[0] = 9;
                 attribute(code[table]);
-            } else if (flag == 1) {               // int || int&&
+            } else if (flag == 1) {
                 function_stack_give_value(code[table]);
-            } else if (flag == 2) {              // int&
+            } else if (flag == 2) {
                 function_stack_lvalue_referenc(code[table]);
-            } else if (flag == 3) { // int*
+            } else if (flag == 3) {
                 function_stack_pointer(code[table]);
-            } else if (flag == 4) { // delete
+            } else if (flag == 4) {
                 H.delete_allocate_space(code[table]);
             } else if (flag == 5) {
                 if_flag = true;
@@ -243,17 +207,11 @@ std::string FUNCTION::function_call(std::string& str, int SP, std::map<int, std:
             }
         }
     }
-
-
-
     address[index] = "------------------------------END---------------------------------";
     value[index] = "";
     name[index] = "";
     area[index] = "\n";
     ++index;
-
-    // erb tesni return miangamic tox functiayi endy dni
-    // -----------------end-----------------------------
     if (if_flag) {
         if (code[table].size() <= 6) {
             function_area.clear();
@@ -271,8 +229,6 @@ std::string FUNCTION::function_call(std::string& str, int SP, std::map<int, std:
                 temprory.erase(0, 1);
                 temprory = return_address(temprory);
                 temprory = return_recursive_value(find_address(temprory));
-                //std::cout << temprory;
-                //exit(0);
                 function_area.clear();
                 return temprory;
             }
@@ -280,9 +236,6 @@ std::string FUNCTION::function_call(std::string& str, int SP, std::map<int, std:
                 function_area.clear();
                 return return_address(temprory);
             }
-            //std::cout << temprory << '\n';
-            //std::cout << return_address(temprory, 2);
-            //exit(0);
             return return_address(temprory, 2);
         }
     }
@@ -291,15 +244,6 @@ std::string FUNCTION::function_call(std::string& str, int SP, std::map<int, std:
 
 bool FUNCTION::search_name(const std::string& str)
 {
-    auto itr = rezolve_arguments.find(str);
-    if (itr != rezolve_arguments.end()) {
-        //std::cout << itr ->first << itr->second << '\n';
-        //if (itr->second.find("0x") != -1) {
-            ///????????????????????????????????????????
-        //} else {
-            return true;
-        //}
-    }
     for (auto& it : name) {
         if (str == it.second) {
             return true;
@@ -311,8 +255,6 @@ bool FUNCTION::search_name(const std::string& str)
 
 void FUNCTION::attribute(std::string str)
 {
-    //std::cout << str;
-    //exit(0);
     bool flag = true;
     std::vector<std::string> line;
     std::stringstream s(str);
@@ -320,8 +262,7 @@ void FUNCTION::attribute(std::string str)
         line.push_back(str);
     }
     int size = line.size();
-    line[size-1].pop_back(); // es verjin ';' -i hamar
-    // heapum petqa unenanq change_value function vorpessi poxenq arjeqy
+    line[size-1].pop_back();
     std::string temp = line[0];
     if (line[0][0] == '*') {
         if (line[0][1] == '*') {
@@ -333,9 +274,7 @@ void FUNCTION::attribute(std::string str)
         if (flag) {
             line[0] = "&" + line[0];
             line[0] = find_address(return_address(line[0]));
-            line[0] = return_name(line[0]); // orinak *P P n vortexe cuyc talis num kam arr[0] ev = 8
-            //std::cout << line[0];
-            //exit(0);
+            line[0] = return_name(line[0]);
         } else {
             line[0] = temp;
         }
@@ -343,7 +282,6 @@ void FUNCTION::attribute(std::string str)
         flag = search_name(line[0]);
     }
     if (line[2] == "new") {
-        //???????????????????????????????veradardzvox????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
         if (!flag) {
             M._D->attribute(line[0] + " = " + line[2] + " " + line[3] + ";");
         } else {
@@ -351,39 +289,30 @@ void FUNCTION::attribute(std::string str)
             change_value(line[0], M._H->temprory_address, 1);
         }
         return;
-        //std::cout << M._H->heap_allocate_space(line[0] ,line[3]);
     } else if (line[2][0] == 39 || (line[2][0] >= '0' && line[2][0] <= '9')) {
         if (!flag) {
             M._D->attribute(line[0] + " = " + line[2] + ";");
-            //std::cout << 222;
-            //exit(0);
         } else {
-            //std::cout << line[2];
-            //exit(0);
             change_value(line[0], install_string(line[2]));
         }
         return;
     } else if (std::isalpha(line[2][0])) {
 
-        if (line[2] == "nullptr" || line[2] == "NULL") {           // /es erb p = nullptr
+        if (line[2] == "nullptr" || line[2] == "NULL") {
             change_value(line[0], install_string(line[2]), 1);
             return;
         }
-        //std::cout << return_address(line[2]);
-       // exit(0);
-        line[2] = return_address(line[2], 1);// ete 1 apa value ete che address
+        line[2] = return_address(line[2], 1);
         if (line[2].find("0x") != -1) {
-            line[2] = return_recursive_value(line[2]); ////////???''
+            line[2] = return_recursive_value(line[2]);
         }
-        if (line[2] == tmp_nullptr || line[2] == tmp_null) { // es erbvor klini int* p = nullptr
+        if (line[2] == tmp_nullptr || line[2] == tmp_null) {
             change_value(line[0], line[2], 1);
             return;
         }
 
-        if (line[2].find("0x") != -1) { // es erb vor valuen klini hasce
+        if (line[2].find("0x") != -1) {
             if (!flag) {
-              //std::cout << line[0] << " " << line[2] << " \n";
-              //exit(0);
                 M._D->attribute(line[0] + " = " + line[2] + ";");
             } else {
                 change_value(line[0], line[2], 1);
@@ -393,19 +322,17 @@ void FUNCTION::attribute(std::string str)
                 line[2] = cut_from_string(line[2]);
                 M._D->attribute(line[0] + " = " + line[2] + ";");
             } else {
-                change_value(line[0], install_string(line[2])); // esel tt = 88
+                change_value(line[0], install_string(line[2]));
             }
         }
         return;
-
     } else if (line[2][0] == '&') {
-        //std::cout << line[2];
         line[2].erase(0, 1);
-        line[2] = return_address(line[2]);// ete 1 apa value ete che address
+        line[2] = return_address(line[2]);
         if (!flag) {
             M._D->attribute(line[0] + " = " + line[2] + ";");
         } else {
-            change_value(line[0], line[2], 1); // 1-y nra hamara vor henc et hascein veragri
+            change_value(line[0], line[2], 1);
         }
     } else if (line[2][0] == '*') {
         if (line[2][1] == '*') {
@@ -414,53 +341,44 @@ void FUNCTION::attribute(std::string str)
             line[2].erase(0, 1);
         }
         line[2] = return_address(line[2], 1);
-        //std::cout << line[2];
         if (line[2].find("0x") == -1) {
             if (!flag) {
                 M._D->attribute(line[0] + " = " + line[2] + ";");
             } else {
-                change_value(line[0], line[2]); // esel tt = 88
+                change_value(line[0], line[2]);
             }
         } else {
             line[2] = return_recursive_value(find_address(line[2]));
             if (!flag) {
                 M._D->attribute(line[0] + " = " + line[2] + ";");
             } else {
-                change_value(line[0], line[2]); 
+                change_value(line[0], line[2]);
             }
         }
     }
-
 }
-std::string FUNCTION::return_name(std::string str) // poxancum em anuny *P vor veradardznie  arr[0]
+std::string FUNCTION::return_name(std::string str)
 {
-    //std::cout << str;
-    //exit(0);
     std::string str1;
     for (auto& it : temprory_address) {
         str1 = find_address(it.second);
         str1.erase(0, 1);
         str1.pop_back();
         if (str1 == str) {
-            // rezolve_arguments[it.first].find("0x");
             if (rezolve_arguments[it.first].find("0x") != -1) {
                 return return_name(find_address(rezolve_arguments[it.first]));
             }
-        //std::cout << it.first << " " << it.second<< '\n';
         }
     }
-    //exit(0);
     for (auto& it : address) {
         if(it.second == str) {
             if (value[it.first].find("0x") == -1) {
                 return name[it.first];
             } else {
-                /////////////////////////////////////////////////////////////////////////////////////////..
                 return return_name(find_address(value[it.first]));
             }
         }
     }
-    //exit(0);
     std::string s = M._H->return_name(str);
     if (s != "") {
         return s;
@@ -469,27 +387,16 @@ std::string FUNCTION::return_name(std::string str) // poxancum em anuny *P vor v
     if (s != "") {
         return s;
     }
-    //std::cout << s << "S";
-    //exit(0);
     s = M._S->return_name(str);
     if (s != "") {
         return s;
     }
     return "";
-
 }
 
-std::string FUNCTION::return_recursive_value(std::string str)//recursive mana galis minjev hasni arjeqi      address poxancum enq inqy gtnum veradardznum e arjeqy
+std::string FUNCTION::return_recursive_value(std::string str)
 {
-    static int i = 0;
-    ++i;
-    if (i == 2) {
-    //std::cout << str;
-    //exit(0);
-    }
-
     for (auto& it : address) {
-        //std::cout << it.second << '\n';
         if(it.second == str) {
             if (value[it.first].find("0x") == -1) {
                 return value[it.first];
@@ -498,18 +405,14 @@ std::string FUNCTION::return_recursive_value(std::string str)//recursive mana ga
             }
         }
     }
-    //exit(0);
     std::string s = M._H->return_recursive_value(str);
     if (s != "") {
         return s;
     }
     s = M._D->return_recursive_value(str);
-    //std::cout << s << " ";
-    //exit(0);
     if (s != "") {
         return s;
     }
-
     s = M._S->return_recursive_value(str);
     if (s != "") {
         return s;
@@ -517,19 +420,9 @@ std::string FUNCTION::return_recursive_value(std::string str)//recursive mana ga
     return "";
 }
 
-
 bool FUNCTION::change_address_for_value(std::string str_name, std::string str_value)
 {
-    //std::cout << str_name << " "  << str_name.size();
-    //exit(0);
-
-    static bool flag = true; // esi static vorovhetev recursiva
-
-    //if (!(str_value[0] == 39 || (str_value[0] >= '0' && str_value[0] <= '9'))) {
-        //kkanchenq vor imananq arjeqy  ete mijiny hace a kam & *
-    //}
-
-    //std::cout << str_name << " ";
+    static bool flag = true;
     for (auto& it : address) {
         if (it.second == str_name) {
             if (value[it.first].find("0x") == -1) {
@@ -542,9 +435,8 @@ bool FUNCTION::change_address_for_value(std::string str_name, std::string str_va
             return 1;
         }
     }
-    flag = true; //??????
+    flag = true;
     if (flag) {
-        //std::cout << "PPP";
         if (M._H->change_value(str_name, str_value)) {
             return 1;
         }
@@ -554,32 +446,22 @@ bool FUNCTION::change_address_for_value(std::string str_name, std::string str_va
         if (M._S->stack_change_value(str_name, str_value)) {
             return 1;
         }
-        //kkanchenq heap ic -----------------------------------------------------------------
     }
     return 0;
 }
 
-bool FUNCTION::change_value(std::string str_name, std::string str_value, bool flag) // orinak heap ic poxum enq garbijov
+bool FUNCTION::change_value(std::string str_name, std::string str_value, bool flag)
 {
-    //auto itr = value.begin();
-    //std::cout << str_name << " " << str_value;
-    //exit(0);
     auto itr = rezolve_arguments.find(str_name);
     if (itr != rezolve_arguments.end()) {
         if (itr->second.find("0x") != -1) {
             itr->second = find_address(itr->second);
             change_address_for_value(itr->second, str_value);
-        //std::cout << str_name << str_value << " " << itr->second << '\n';
-        //ret
-        //exit(0);
         } else {
             itr->second = install_string(str_value);
         }
-        //std::cout << itr->first << itr->second;
         return 1;
     }
-
-   //exit(0);
     if (str_name.find("0x") != -1) {
         str_name = return_name(str_name);
     }
@@ -593,19 +475,13 @@ bool FUNCTION::change_value(std::string str_name, std::string str_value, bool fl
             }
             return 1;
         }
-        //++itr;
     }
-
-    //std::cout << str_name;
-    //exit(0);
-    // bss---------------------------------------
     if (M._H->change_value(str_name, str_value)) {
         return 1;
     }
     if (M._D->data_change_value(str_name, str_value, flag)) {
         return 1;
     }
-    //exit(0);
     if (M._S->stack_change_value(str_name, str_value, flag)) {
         return 1;
     }
@@ -616,12 +492,6 @@ void FUNCTION::call_and_implementation()
 {
     std::string str = "0xFF011111";
     auto itr = rezolve_arguments.begin();
-    //++itr;
-    //std::cout << itr->first;///////////////////////////////////////////////////////////////////////////
-    //for (auto it : rezolve_arguments) {
-      //  std::cout << it.first << " " << it.second << '\n';
-    //}
-    //exit(0);
     for (int i = 0; i < vector_rezolv_arguments.size(); ++i) {
         if (vector_rezolv_arguments[i].size()-1 == ']') {
             int x = vector_rezolv_arguments[i].find('[');
@@ -631,9 +501,7 @@ void FUNCTION::call_and_implementation()
     int i = 0;
     for (auto& it : function_arguments_rezolve) {
         if (itr != rezolve_arguments.end()) {
-            //std::cout << 1  << " ";
             if (itr->first[itr->first.size()-1] == ']') {
-                //std::cout << itr->first;
                 int x = itr->first.find('[');
                 auto& PTR = const_cast<std::string&>(itr->first);
                 std::string cut = itr->first;
@@ -641,12 +509,9 @@ void FUNCTION::call_and_implementation()
                 PTR = cut;
             }
             rezolve_arguments[vector_rezolv_arguments[i++]] = it;
-            //itr->second = it;
             ++itr;
         }
-        //std::cout << it << '\n';
     }
-    //exit(0);
     itr = rezolve_arguments.begin();
     for (auto itr1 = itr; itr1 != rezolve_arguments.end(); ++itr1) {
         if (itr1->second[0] != '[') {
@@ -657,16 +522,6 @@ void FUNCTION::call_and_implementation()
         str = address_adjuster(str, 4);
         temprory_address[it.first] = install_string(str);
     }
-
-    //for (auto& it : rezolve_arguments) {
-      //  std::cout << it.first  << " " << it.second << '\n';;
-    //}
-    //exit(0);
-    //std::cout << '\n';
-    //for (auto& it : temprory_address) {
-      //  std::cout << it.first << " " << it.second << '\n';
-    //}
-    //exit(0);
     function_arguments_rezolve.clear();
 }
 
@@ -702,7 +557,6 @@ void FUNCTION::function_stack_give_value(std::string str)
         }
         line.push_back(t);
     }
-
     int size = line.size();
     line[size-1].pop_back();
     std::map<int, std::string> mp;
@@ -726,7 +580,7 @@ void FUNCTION::function_stack_give_value(std::string str)
             if (i == 0) {
                 mp = type_sizeof_and_appearance(line[i]);
                 auto it = mp.begin();
-                address[index] = address_adjuster(address[index-1], it->first);// kara inchvor mi tex index-1 y tox tpi???????????????
+                address[index] = address_adjuster(address[index-1], it->first);
                 area[index] = it->second;
             }
             if (i == 1) {
@@ -734,8 +588,7 @@ void FUNCTION::function_stack_give_value(std::string str)
                 function_area[index] = name[index];
             }
             if (i == 2) {
-                //value[index] = garbij;
-                continue;/////////////////////////////////////////////////// =, +=, -= ..............................................
+                continue;
             }
             if (i == 3) {
                 if (line[3][0] == '*') {
@@ -745,35 +598,22 @@ void FUNCTION::function_stack_give_value(std::string str)
                         line[3].erase(0, 1);
                     }
                     line[3] = return_address(line[3], 1);
-                    
                     if (line[3].find("0x") == -1) {
                         change_value(line[1], line[3]); // esel tt = 88
                     } else {
-                    /*static int i = 0;
-                    ++i;
-                    if (i == 2) {
-                    std::cout << find_address(line[3]);
-                    exit(0);
-                    }*/
                         line[3] = return_recursive_value(find_address(line[3]));
-                        //std::cout << line[3];
                         change_value(line[1], line[3]);
                     }
                 } else if (line[3][0] == 39 || (line[3][0] >= '0' && line[3][0] <= '9')) {
                     tm = install_string(line[3]);
                 } else {
-                    //std::cout << line[3];
-                    //exit(0);
                     if (line[3][0] != '[') {
-                    //std::cout << line[3][0] << " ";
                         line[3] = return_address(line[3], 1);
                         if (line[3].find("0x") != -1) {
                             line[3] = return_recursive_value(line[3]);
                         }
-                        //std::cout << line[3];
-                        //exit(0);
                     }
-                    if (line[3].size() > 12 && line[3][0] == '[') {// es en depqna erb referencic uzum en arjeqy
+                    if (line[3].size() > 12 && line[3][0] == '[') {
                         line[3] = function_return_value(find_address(line[3]));
                     }
                 }
@@ -786,7 +626,7 @@ void FUNCTION::function_stack_give_value(std::string str)
     return;
 }
 
-std::string FUNCTION::function_return_value(const std::string& str) // poxancum enq address
+std::string FUNCTION::function_return_value(const std::string& str)
 {
     int index = 0;
     for (auto& it : address) {
@@ -801,7 +641,6 @@ std::string FUNCTION::function_return_value(const std::string& str) // poxancum 
     if (index != 0) {
         return value[index];
     }
-
     std::string ss = M._D->return_value(str);
     if (ss != "") {
         return ss;
@@ -813,7 +652,7 @@ std::string FUNCTION::function_return_value(const std::string& str) // poxancum 
     return "";
 }
 
-int FUNCTION::function_array_element_count(std::string tmp) // "int arr["4"]" elementneri qanaky
+int FUNCTION::function_array_element_count(std::string tmp)
 {
      if (tmp[0] >= '0' && tmp[0] <= '9') {
          return std::stoi(tmp);
@@ -829,14 +668,14 @@ int FUNCTION::function_array_element_count(std::string tmp) // "int arr["4"]" el
      return 0;
 }
 
-void FUNCTION::function_static_matrix(std::string str) //matrix //????????????????????????????????????????????===========
+void FUNCTION::function_static_matrix(std::string str)
 {
     static bool b = false;
     if (index == 100) {
         b = true;
         address[index-1] = "0x00000000";
     }
-    std::string tmp = ""; // [55] = {1,2};
+    std::string tmp = "";
     std::stringstream s(str);
     std::vector<std::string> line;
     bool flag = false;
@@ -853,8 +692,8 @@ void FUNCTION::function_static_matrix(std::string str) //matrix //??????????????
     int cut = line[1].find('[');
     int cut1 = 0;
     int name_cut = cut;
-    int row = 0; // toxeri qanaky
-    int column = 0;// syuneri qanaky
+    int row = 0;
+    int column = 0;
     int x = 2;
     do {
         cut1 = cut;
@@ -863,7 +702,7 @@ void FUNCTION::function_static_matrix(std::string str) //matrix //??????????????
         }
         tmp = line[1].substr(cut1 + 1, (cut - cut1) -1);
         if (tmp == "") {
-            row = 0; // es en depqna vor chuni grac veci sizenel elementneri qanakna
+            row = 0;
         } else {
             if (x == 2) {
                 row = function_array_element_count(tmp);
@@ -875,7 +714,7 @@ void FUNCTION::function_static_matrix(std::string str) //matrix //??????????????
         --x;
     } while (x > 0);
 
-    std::vector<std::string> vec = M._S->return_matrix_elements(line[3], column, row); //--stex kdzem vor {{1,2,3},3,3} ashxati
+    std::vector<std::string> vec = M._S->return_matrix_elements(line[3], column, row);
     if (!row) {
         ++row;
         for (int i = 0; i < vec.size(); ++i) {
@@ -900,7 +739,7 @@ void FUNCTION::function_static_matrix(std::string str) //matrix //??????????????
     area[index] = "";
     ++index;
     for (int i = 0; i < column; ++i) {
-       if (vec[j] == " ") { //////////////////hly es eli knayem
+       if (vec[j] == " ") {
            ++j;
        }
        address[index] = address_adjuster(address[index-1], it->first);
@@ -909,7 +748,6 @@ void FUNCTION::function_static_matrix(std::string str) //matrix //??????????????
        area[index] = it->second;
        ++index;
     }
-
     address[temprory] = "\033[3;33m" + line[1] + "[" + std::to_string(tmp_row) + "]" + "\033[0m";
     ++tmp_row;
     } while (tmp_row < row);
@@ -920,16 +758,13 @@ void FUNCTION::function_static_matrix(std::string str) //matrix //??????????????
     }
 }
 
-
-//char arr[] = {'a', 'a', 'a', '\0'};
 void FUNCTION::function_static_array(std::string str)
 {
-    //    ete const lini stexic miangamic data kuxarmem ///
     static bool b = true;
     if (index == 100 && b) {
         address[index-1] = "0x00000000";
     }
-    std::string tmp = ""; // [55] = {1,2};
+    std::string tmp = "";
     std::stringstream s(str);
     std::vector<std::string> line;
     bool flag = false;
@@ -964,10 +799,7 @@ void FUNCTION::function_static_array(std::string str)
             tmp = cut_from_string(tmp);
             count = std::stoi(tmp);
         }
-
-        //count = std::stoi(tmp);
     }
-    //tmp == arr[0]
     while (line[1].size() > x) {
         line[1].pop_back();
     }
@@ -1025,15 +857,13 @@ std::vector<std::string> FUNCTION::function_return_array_elements(std::string& s
 }
 
 
-bool FUNCTION::function_stack_change_value(std::string str_name, std::string str_value) // orinak heap ic poxum enq garbijov
+bool FUNCTION::function_stack_change_value(std::string str_name, std::string str_value)
 {
-    //auto itr = value.begin();
     for (auto& it : name) {
         if (it.second == str_name) {
             value[it.first] = str_value;
             return 0;
         }
-        //++itr;
     }
     return 1;
 }

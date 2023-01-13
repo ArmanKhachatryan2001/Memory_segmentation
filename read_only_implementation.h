@@ -6,15 +6,11 @@ READ_ONLY::READ_ONLY()
 void READ_ONLY::print()
 {
     address[index++] = "\033[4;32mREAD_ONLY------------------------------------------------------END\033[0m\n";
-    //style[i++] = "*/*";
-    //style[i++] = "\033[4;31mRAM-------------------------------------------------------------------------------END\033[0m\n";
-    //style[i++] = "*/*";
     RAM_print(style, address, name, value, area);
 }
 
-std::string READ_ONLY::stack_call_char_pointer(std::string n, std::string str) //         \0 ------------------------------
+std::string READ_ONLY::stack_call_char_pointer(std::string n, std::string str)
 {
-    //std::cout << n << " " << str;
     std::string tmp_address = "[";
     static bool fl = true;
     static bool b = true;
@@ -71,7 +67,7 @@ std::string READ_ONLY::return_address(std::string str, int arg)
     auto i_ret = value.begin();
     for (auto& it : name) {
         if (it.second == str) {
-             if((i_ref->second.find('&') != -1 && i_ref->second.find("&&") == -1) || (i_ref->second.find('*') != -1) && point != '&') {// && i_ref->second.find("&&") == -1))) {
+             if((i_ref->second.find('&') != -1 && i_ref->second.find("&&") == -1) || (i_ref->second.find('*') != -1) && point != '&') {
                 s += i_ret->second;
                 s.erase(1,1);
              } else {
