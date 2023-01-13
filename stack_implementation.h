@@ -11,6 +11,7 @@ void STACK::print()
     address[index++] = "\033[4;32mSTACK----------------------------------------------------------END\033[0m\n";
     RAM_print(style, address, name, value, area);
 }
+
 void STACK::function_area(std::string str)
 {
     str = prabel + str;
