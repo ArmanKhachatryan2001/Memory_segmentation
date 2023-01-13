@@ -21,6 +21,4 @@
 Օրինակ 1 - այս ծրագրի կատարման արդյունքում օգտագործողը կտեսնի օրինակ 2֊ում պատկերված արդյունքը։
 
     Օրինակ 1.
-    <br />
-        ![Screenshot from 2023-01-13 19-52-26](https://user-images.githubusercontent.com/104670251/212362348-8a1a1ceb-0e21-48bb-9225-1358e8b8acdd.png)
-    <br />
+     <br />![Screenshot from 2023-01-13 19-52-26](https://user-images.githubusercontent.com/104670251/212362348-8a1a1ceb-0e21-48bb-9225-1358e8b8acdd.png)<br />
