@@ -6,8 +6,7 @@ TEXT::TEXT()
     style[i++] = "int main()";
 }
 
-std::string TEXT::return_address(std::string str, int arg) // վերադարձնում է ստրինգ որտեղ մինջև առաջին պռաբելը 
-    // ցույց է տալիս թէ որ տողում է գտնվում այդ ֆունկցիայի սկիզբը, իսկ մնացացը ֆունկցիայի prototype֊ն է։
+std::string TEXT::return_address(std::string str, int arg)
 {
     int i = str.size()-1;
     while (i) {
@@ -26,11 +25,8 @@ std::string TEXT::return_address(std::string str, int arg) // վերադարձն
             return it.second;
         }
     }
-
     return "";
 }
-
-
 
 void TEXT::print()
 {
@@ -38,7 +34,7 @@ void TEXT::print()
     RAM_print(style, address, name, value, area);
 }
 
-int TEXT::function_call(std::map<int, std::string> code)//վերադարձնում է թէ որտողից է սկսվում main֊ը //ֆունկցիաների համար
+int TEXT::function_call(std::map<int, std::string> code)
 {
     bool b = true;
     int scope_count = 0;
@@ -47,7 +43,6 @@ int TEXT::function_call(std::map<int, std::string> code)//վերադարձնու
         std::stringstream tmp(it.second);
         std::string str = "";
         tmp >> str;
-
         if (b && it.second.find("main(") != -1 || it.second.find("main (") != -1) {
             b = false;
             int k = it.second.size()-1;
@@ -107,53 +102,35 @@ int TEXT::function_call(std::map<int, std::string> code)//վերադարձնու
                 if (cat_name != -1) {
                     str.erase(cat_name, str.size() - cat_name);
                 }
-                // fun map֊ի մեջ պահում ենք թէ որ տողում է գտնվում այդ ֆունկցիան և նրա prototype:
-
                 fun[str] = std::to_string(it.first);
                 fun[str] += " ";
                 fun[str] += address[index];
                 fun[str] += " ";
                 fun[str] += it.second;
-                //std::cout << fun[str] << '\n';
                 ++index;
                 if (temprory) {
                     temprory = 0;
                 }
         }
-        ///////////////////////////////////////////////// stexic arji urish functia kanchel
         if (scope_count == 0 && temprory) {
-            //std::cout << str << " "  << it.second << '\n';
             global_variable(str, it.second);
         }
     }
     return 0;
 }
 
-void TEXT::global_variable(std::string str, std::string it_second) // text i mijic miangamic globalneri hamar
+void TEXT::global_variable(std::string str, std::string it_second)
 {
     int flag = type_and_action.type_action(str);
-            //std::cout << flag << " ffffff";
-            if (flag == -1) {
-                /*int flag_action = M.function_or_action(code[SP]); // vorpesszi haskananq functia e te che
-                if(flag_action == 1) { // functia e foo();
-                        std::string stack_call = T.return_address(code[SP]); // veradardznum e function i masin texekutyun
-                        std::vector<std::string> vec = S.argument_rezolve(stack_call); // arguments   int a  int b
-                        S.transfer(vec, code[SP]);
-                        F.function_call(stack_call, SP, code);
-                        M._F->clear_rezolve_function();
-                } else {
-                    M._D->attribute(code[SP]); // gorcoxutyan hamara
-                }*/
-            //std::cout << flag   <<  " " << it_second << " ffffff";
-                M._D->attribute(it_second); // gorcoxutyan hamara??????????????????????????????
-            } else if (flag == 1) {               // int || int&&
-                M._D->data_give_value(it_second);
-            } else if (flag == 2) {              // int&
-                M._D->data_lvalue_referenc(it_second);
-            } else if (flag == 3) {
-                M._D->data_pointer(it_second);
-            } else if (flag == 6) {
-                M._D->data_pointer(it_second);
-            }
-
+    if (flag == -1) {
+        M._D->attribute(it_second);
+    } else if (flag == 1) {
+        M._D->data_give_value(it_second);
+    } else if (flag == 2) {
+        M._D->data_lvalue_referenc(it_second);
+    } else if (flag == 3) {
+        M._D->data_pointer(it_second);
+    } else if (flag == 6) {
+        M._D->data_pointer(it_second);
+    }
 }

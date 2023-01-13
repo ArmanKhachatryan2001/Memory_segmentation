@@ -9,9 +9,7 @@ void DATA::print()
     RAM_print(style, address, name, value, area);
 }
 
-
-
-bool DATA::search_name(std::string str) // veradardznum e 1 ete ka
+bool DATA::search_name(std::string str)
 {
     for (auto& it : name) {
         if (it.second == str) {
@@ -21,12 +19,8 @@ bool DATA::search_name(std::string str) // veradardznum e 1 ete ka
     return false;
 }
 
-
 void DATA::attribute(std::string str)
 {
-    // faind kanem ete chka BSS  nu man galu texy
-    //std::cout << str << " "  << str.size() << " ";
-    //exit(0);
     std::vector<std::string> line;
     std::string str_bss = str;
     std::stringstream s(str);
@@ -34,8 +28,7 @@ void DATA::attribute(std::string str)
         line.push_back(str);
     }
     int size = line.size();
-    line[size-1].pop_back(); // es verjin ';' -i hamar
-    // heapum petqa unenanq change_value function vorpessi poxenq arjeqy
+    line[size-1].pop_back();
     if (line[0][0] == '*') {
         if (line[0][1] == '*') {
             line[0].erase(0, 2);
@@ -48,7 +41,7 @@ void DATA::attribute(std::string str)
         }
         line[0] = "&" + line[0];
         line[0] = find_address(return_address(line[0]));
-        line[0] = return_name(line[0]); // orinak *P P n vortexe cuyc talis num kam arr[0] ev = 8
+        line[0] = return_name(line[0]);
     }
     if (line[2].find("0x") != -1) {
         data_change_value(line[0], line[2]);
@@ -57,18 +50,15 @@ void DATA::attribute(std::string str)
         M._H->heap_allocate_space(line[0] ,line[3]);
         data_change_value(line[0], M._H->temprory_address, 1);
         return;
-        //std::cout << M._H->heap_allocate_space(line[0] ,line[3]);
     } else if (line[2][0] == 39 || (line[2][0] >= '0' && line[2][0] <= '9')) {
         data_change_value(line[0], install_string(line[2]));
         return;
     } else if (std::isalpha(line[2][0])) {
-        if (line[2] == "nullptr" || line[2] == "NULL") {           // es erb p = nullptr
+        if (line[2] == "nullptr" || line[2] == "NULL") {
             data_change_value(line[0], install_string(line[2]), 1);
             return;
         }
-        std::string tmp = return_address(line[2], 1);// ete 1 apa value ete che address
-        //std::cout << tmp;
-        //exit(0);
+        std::string tmp = return_address(line[2], 1);
         if (tmp == "[       ]") {
             tmp = M._D->return_address(line[2], 1);
             if (tmp == "[       ]") {
@@ -76,23 +66,20 @@ void DATA::attribute(std::string str)
             }
         }
         line[2] = tmp;
-        //std::cout << " " << line[2];////////
-        if (line[2] == tmp_nullptr || line[2] == tmp_null) { // es erbvor klini int* p = nullptr
+        if (line[2] == tmp_nullptr || line[2] == tmp_null) {
             data_change_value(line[0], line[2], 1);
             return;
         }
-
-        if (line[2].find("0x") != -1) { // es erb vor valuen klini hasce
+        if (line[2].find("0x") != -1) {
             data_change_value(line[0], line[2], 1);
         } else {
-            data_change_value(line[0], install_string(line[2])); // esel tt = 88
+            data_change_value(line[0], install_string(line[2]));
         }
         return;
-
     } else if (line[2][0] == '&') {
         line[2].erase(0, 1);
-        line[2] = return_address(line[2]);// ete 1 apa value ete che address
-        data_change_value(line[0], line[2], 1); // 1-y nra hamara vor henc et hascein veragri
+        line[2] = return_address(line[2]);
+        data_change_value(line[0], line[2], 1);
     } else if (line[2][0] == '*') {
         if (line[2][1] == '*') {
             line[2].erase(0, 2);
@@ -101,24 +88,19 @@ void DATA::attribute(std::string str)
         }
         line[2] = return_address(line[2], 1);
         if (line[2].find("0x") == -1) {
-            data_change_value(line[0], line[2]); // esel tt = 88
+            data_change_value(line[0], line[2]);
         } else {
-            //std::cout << line[2];
             line[2] = return_recursive_value(find_address(line[2]));
             data_change_value(line[0], line[2]); 
         }
     }
     if (line[2].find("0x") != -1) {
-        //std::cout << line[0] << " "  <<  line[2]  << "R" <<'\n';
         M._B->bss_change_value(line[0], line[2], 1);
-        //std::cout << 111;
-        //exit(0);
     }
 }
 
-std::string DATA::return_name(std::string str) // poxancum em anuny *P vor veradardznie  arr[0]
+std::string DATA::return_name(std::string str)
 {
-    //std::cout << str << "S";
     for (auto& it : address) {
         if(it.second == str) {
             if (value[it.first].find("0x") == -1) {
@@ -140,21 +122,11 @@ std::string DATA::return_name(std::string str) // poxancum em anuny *P vor verad
     if (s != "") {
         return s;
     }
-    //exit(0);
-    // bss
     return "";
-
 }
 
-std::string DATA::return_recursive_value(std::string str)//recursive mana galis minjev hasni arjeqi      address poxancum enq inqy gtnum veradardznum e arjeqy
+std::string DATA::return_recursive_value(std::string str)
 {
-    //static int i = 0;
-    //++i;
-    //if (i == 2) {
-      // }
-    //std::cout << str;
-    //exit(0);
-    //static std::string temp = str;
     if (str[0] == '[') {
         str = find_address(str);
     }
@@ -184,17 +156,11 @@ std::string DATA::return_recursive_value(std::string str)//recursive mana galis 
     return "";
 }
 
-
 bool DATA::data_change_address_for_value(std::string str_name, std::string str_value)
 {
-    //std::cout << str_name << " ?"  << str_value << str_name.size() << '\n';
-    static bool flag = true; // esi static vorovhetev recursiva
-    
+    static bool flag = true;
     if (!(str_value[0] == 39 || (str_value[0] >= '0' && str_value[0] <= '9'))) {
-        //kkanchenq vor imananq arjeqy  ete mijiny hace a kam & *
     }
-
-    //std::cout << str_name << " ";
     for (auto& it : address) {
         if (it.second == str_name) {
             if (value[it.first].find("0x") == -1) {
@@ -208,44 +174,31 @@ bool DATA::data_change_address_for_value(std::string str_name, std::string str_v
         }
     }
     if (flag) {
-        //std::cout << "PPP";
         if (M._H->change_value(str_name, str_value)) {
             return 1;
         }
         if (M._B->bss_change_value(str_name, str_value)) {
-            //std::cout << str_name << " "<< str_value << "AAA1"<<'\n';
             return 1;
         }
         if (M._S->stack_change_value(str_name, str_value)) {
             return 1;
         }
-        //kkanchenq heap ic -----------------------------------------------------------------
     }
     flag = true;
     return 0;
 }
 
-bool DATA::data_change_value(std::string str_name, std::string str_value, bool flag) // orinak heap ic poxum enq garbijov
+bool DATA::data_change_value(std::string str_name, std::string str_value, bool flag)
 {
-    //auto itr = value.begin();
-    //static int jj = 0;
-    //++jj;
-    //if (jj == 2) {
-    //std::cout << " " << str_name <<  " "  << str_value;
-    //exit(0);
-    //}
     if (str_name.find("0x") != -1) {
         str_name = return_name(str_name);
     }
     for (auto& it : name) {
         if (it.second == str_name) {
             if (flag || value[it.first].find("0x") == -1) {
-                //std::cout << 1222;
                 if (!flag && str_value.find("0x") != -1) {
                     str_value = return_recursive_value(str_value);
                 }
-                //std::cout << str_value <<  " " << 11 <<  " " << flag << " " << value[it.first];
-                //exit(0);
                 value[it.first] = str_value;
             } else {
                 str_name = find_address(value[it.first]);
@@ -253,13 +206,8 @@ bool DATA::data_change_value(std::string str_name, std::string str_value, bool f
             }
             return 1;
         }
-        //++itr;
     }
-
-    //exit(0);
-    // bss---------------------------------------
     if (M._B->bss_change_value(str_name, str_value, flag)) {
-           // std::cout << str_name << " "<< str_value << "AAA2"<<'\n';
         return 1;
     }
     if (M._H->change_value(str_name, str_value)) {
@@ -271,13 +219,8 @@ bool DATA::data_change_value(std::string str_name, std::string str_value, bool f
     return 0;
 }
 
-
-
-
-
-int DATA::data_give_value(std::string str) // nuyny BSS
+int DATA::data_give_value(std::string str)
 {
-    //std::cout << str;
     static bool b = true;
     if (b) {
         address[index-1] = "0xD0000010";
@@ -303,15 +246,14 @@ int DATA::data_give_value(std::string str) // nuyny BSS
         if (i == 0) {
             mp = type_sizeof_and_appearance(line[i]);
             auto it = mp.begin();
-            address[index] = address_adjuster(address[index-1], it->first);// kara inchvor mi tex index-1 y tox tpi
+            address[index] = address_adjuster(address[index-1], it->first);
             area[index] = it->second;
         }
         if (i == 1) {
             name[index] = line[i];
         }
         if (i == 2) {
-            //value[index] = garbij;
-            continue;////// =, +=, -= ..
+            continue;
         }
         if (i == 3) {
             if (line[3][0] == '*') {
@@ -322,22 +264,21 @@ int DATA::data_give_value(std::string str) // nuyny BSS
                 }
                 line[3] = return_address(line[3], 1);
                 if (line[3].find("0x") == -1) {
-                    data_change_value(line[1], line[3]); // esel tt = 88
+                    data_change_value(line[1], line[3]);
                 } else {
                     line[3] = return_recursive_value(find_address(line[3]));
-                    data_change_value(line[1], line[3]); 
+                    data_change_value(line[1], line[3]);
                     ++index;
                 }
                 return 0;
             }
             if (line[3][0] == 39 || (line[3][0] >= '0' && line[3][0] <= '9')) {
                 t = install_string(line[3]);
-                //std::cout << t << " ";
             } else {
                 if (line[3][0] != '[') {
                     line[3] = return_address(line[3], 1);
                 }
-                if (line[3].size() > 12 && line[3][0] == '[') {// es en depqna erb referencic uzum en arjeqy
+                if (line[3].size() > 12 && line[3][0] == '[') {
                     int x = line[3].find("0x");
                     line[3] = line[3].substr(x, 10);
                     line[3] = return_value(line[3]);
@@ -348,7 +289,6 @@ int DATA::data_give_value(std::string str) // nuyny BSS
     }
     if (t != "[          ]") {
         value[index] = t;
-            //t = install_string(line[3]);
     }
     ++index;
     if (b) {
@@ -358,7 +298,7 @@ int DATA::data_give_value(std::string str) // nuyny BSS
     return 0;
 }
 
-std::string DATA::return_value(const std::string& str) // poxancum enq address
+std::string DATA::return_value(const std::string& str)
 {
     std::string ss = M._B->return_value(str);
     if (ss != "") {
@@ -410,14 +350,13 @@ int DATA::data_pointer(std::string str)
         }
         line[3].pop_back();
         line[3].erase(0, 1);
-        value[index] = M._R->stack_call_char_pointer(line[1], line[3]);/////////////////////////////////////////
-        } else {
-            if (line[3][0] == '*') {
-                line[3].erase(0, 1);
-            }
-
-            value[index] = return_address(line[3]);
+        value[index] = M._R->stack_call_char_pointer(line[1], line[3]);
+    } else {
+        if (line[3][0] == '*') {
+            line[3].erase(0, 1);
         }
+        value[index] = return_address(line[3]);
+    }
     area[index] = it->second;
     name[index] = line[1];
     ++index;
@@ -427,7 +366,6 @@ int DATA::data_pointer(std::string str)
     }
     return 0;
 }
-
 
 int DATA::data_lvalue_referenc(std::string str)
 {
@@ -450,7 +388,6 @@ int DATA::data_lvalue_referenc(std::string str)
     } else {
         value[index] = t;
     }
-    //value[index] = return_address(line[3]);
     area[index] = it->second;
     ++index;
     return 0;
@@ -458,13 +395,11 @@ int DATA::data_lvalue_referenc(std::string str)
 
 std::string DATA::return_address(std::string str, int arg)
 {
-
     std::string s = "[";
     s = M._B->return_address(str, arg);
     if (s != "[       ]") {
        return s;
     }
-    //std::cout << s << " " << str << " " << arg << '\n';
     s = "[";
     char point = ' ';
     if (str[0] == '&') {
@@ -476,7 +411,7 @@ std::string DATA::return_address(std::string str, int arg)
     auto i_ret = value.begin();
     for (auto& it : name) {
         if (it.second == str) {
-            if((i_ref->second.find('&') != -1 && i_ref->second.find("&&") == -1) || (i_ref->second.find('*') != -1) && point != '&') {// && i_ref->second.find("&&") == -1))) {
+            if((i_ref->second.find('&') != -1 && i_ref->second.find("&&") == -1) || (i_ref->second.find('*') != -1) && point != '&') {
                 s += i_ret->second;
                 s.erase(1,1);
             } else {
@@ -489,7 +424,6 @@ std::string DATA::return_address(std::string str, int arg)
             if (arg && s.find("0x") != -1) {
                 s = return_value(find_address(s));
             }
-            //std::cout << s << " " << arg << '\n';
             return s;
         }
         if (i_ref != area.end()) {

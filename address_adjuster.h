@@ -51,9 +51,3 @@ std::string address_adjuster(std::string arr, int size_type) {
     }
     return address(sam+size_type);
 }
-/*
-int main () {
-    int x = 1; // sizeof(type  byte)
-    std::cout << address("0x000000FF", x);
-}
-*/
