@@ -36,7 +36,6 @@ void STACK::attribute(std::string str)
         line[0] = "&" + line[0];
         line[0] = find_address(return_address(line[0]));
         line[0] = return_name(line[0]);
-        std::cout << line[0] << "A\n";
     }
     if (line[2][0] == 34) {
         line[2].erase(0, 1);
